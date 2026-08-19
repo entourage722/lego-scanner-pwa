@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+<title>積木掃描小幫手</title>
+<meta name="theme-color" content="#0f172a" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="積木掃描" />
+<link rel="manifest" href="manifest.json" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div id="app">
+
+<header class="topbar">
+<button id="backBtn" class="icon-btn hidden" aria-label="返回">←</button>
+<h1 id="pageTitle">積木掃描小幫手</h1>
+<button id="settingsBtn" class="icon-btn" aria-label="設定">⚙️</button>
+</header>
+
+<main id="views">
+
+<section id="view-home" class="view active">
+<div class="hero-actions">
+<button class="big-btn primary" data-goto="scan-ocr">
+<span class="big-btn-icon">📦</span>
+<span class="big-btn-label">掃描組合盒</span>
+<span class="big-btn-sub">拍下盒上印的組合編號</span>
+</button>
+<button class="big-btn secondary" data-goto="scan-qr">
+<span class="big-btn-icon">🔲</span>
+<span class="big-btn-label">掃描零件 / QR code</span>
+<span class="big-btn-sub">掃描包裝、零件或人偶包裝上的條碼</span>
+</button>
+</div>
+
+<div class="manual-search card">
+<div class="segmented" id="manualModeSeg">
+<button class="seg-btn active" data-mode="set">組合編號</button>
+<button class="seg-btn" data-mode="part">零件編號</button>
+<button class="seg-btn" data-mode="minifig">人偶</button>
+</div>
+<div class="search-row">
+<input id="manualInput" type="text" inputmode="text" placeholder="輸入編號或名稱，例如 75192、3001、fig-000001 或 Batman" />
+<button id="manualSearchBtn" class="pill-btn">查詢</button>
+</div>
+</div>
+
+<div class="history-block">
+<div class="section-head">
+<h2>最近查詢</h2>
+<button id="clearHistoryBtn" class="link-btn">清除</button>
+</div>
+<div id="historyList" class="history-list"></div>
+</div>
+</section>
+
+<section id="view-scan-ocr" class="view">
+<div class="camera-wrap">
+<video id="ocrVideo" autoplay playsinline muted></video>
+<div class="frame-guide"></div>
+<p class="camera-hint">把組合盒上印的「組合編號」對準框內，盡量靠近、對焦清楚後拍照</p>
+</div>
+<div class="camera-controls">
+<button id="ocrCaptureBtn" class="capture-btn" aria-label="拍照辨識"></button>
+</div>
+<canvas id="ocrCanvas" class="hidden"></canvas>
+</section>
+
+<section id="view-scan-qr" class="view">
+<div class="camera-wrap">
+<div id="qrReader"></div>
+<p class="camera-hint">將 QR code 或條碼對準畫面，會自動偵測</p>
+</div>
+</section>
+
+<section id="view-review" class="view">
+<div class="card">
+<p class="muted">辨識結果（可修改後再查詢）：</p>
+<div class="segmented" id="reviewModeSeg">
+<button class="seg-btn active" data-mode="set">組合編號</button>
+<button class="seg-btn" data-mode="part">零件編號</button>
+<button class="seg-btn" data-mode="minifig">人偶</button>
+</div>
+<input id="reviewInput" type="text" class="review-input" />
+<p class="muted" id="reviewHint" style="text-align:center;margin-top:-4px"></p>
+<button id="reviewSearchBtn" class="pill-btn full">查詢 Rebrickable</button>
+</div>
+</section>
+
+<section id="view-result" class="view">
+<div id="resultContent"></div>
+</section>
+
+<section id="view-settings" class="view">
+<div class="card">
+<h2>Rebrickable API Key</h2>
+<p class="muted">前往 rebrickable.com/api/v3/docs 登入後可免費申請。這把 Key 只會存在你手機瀏覽器裡，不會上傳到任何伺服器。</p>
+<input id="apiKeyInput" type="text" placeholder="貼上你的 API Key" autocomplete="off" autocapitalize="off" spellcheck="false" />
+<button id="saveApiKeyBtn" class="pill-btn full">儲存</button>
+<p id="apiKeyStatus" class="muted"></p>
+</div>
+<div class="card">
+<h2>關於</h2>
+<p class="muted">本 App 使用 Rebrickable 提供的公開資料庫與 API，僅供個人查詢樂高組合與零件資訊之用，與 LEGO® 官方及 Rebrickable 無關聯。</p>
+</div>
+</section>
+
+</main>
+
+<div id="toast" class="toast hidden"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
