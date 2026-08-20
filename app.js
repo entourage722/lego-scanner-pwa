@@ -25,6 +25,8 @@ function showView(name, { pushHistory = true } = {}) {
     home: "積木掃描小幫手",
     "scan-ocr": "掃描組合盒",
     "scan-qr": "掃描零件 / QR",
+    "scan-minifig": "AI 辨識人偶",
+    "minifig-ai": "AI 辨識結果",
     review: "確認辨識結果",
     result: "查詢結果",
     settings: "設定",
@@ -36,9 +38,11 @@ function showView(name, { pushHistory = true } = {}) {
   // stop camera streams when leaving their views
   if (name !== "scan-ocr") stopOcrCamera();
   if (name !== "scan-qr") stopQrScanner();
+  if (name !== "scan-minifig") stopMinifigCamera();
 
   if (name === "scan-ocr") startOcrCamera();
   if (name === "scan-qr") startQrScanner();
+  if (name === "scan-minifig") startMinifigCamera();
 
   if (pushHistory) {
     if (viewStack[viewStack.length - 1] !== name) viewStack.push(name);
@@ -462,6 +466,136 @@ function onQrDetected(text) {
   const numMatch = text.match(/(\d{3,7})(-\d{1,2})?(?!.*\d)/);
   if (numMatch) guess = numMatch[0];
   goToReview(guess, "part");
+}
+
+// ============================================================
+// AI 人偶辨識 — 拍照後送到後端，由 Claude 視覺模型辨識
+// ============================================================
+let minifigStream = null;
+
+async function startMinifigCamera() {
+  try {
+    minifigStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 960 } },
+      audio: false,
+    });
+    $("#minifigVideo").srcObject = minifigStream;
+  } catch (err) {
+    toast("無法開啟相機：" + err.message, "error");
+  }
+}
+
+function stopMinifigCamera() {
+  if (minifigStream) {
+    minifigStream.getTracks().forEach((t) => t.stop());
+    minifigStream = null;
+  }
+}
+
+$("#minifigCaptureBtn").addEventListener("click", async () => {
+  const video = $("#minifigVideo");
+  if (!video.videoWidth) {
+    toast("相機還沒準備好，稍等一下再試");
+    return;
+  }
+  const canvas = $("#minifigCanvas");
+  // Cap the longest side so the upload stays small & fast, while keeping enough
+  // detail for the AI to make out face/torso print/accessories.
+  const MAX_SIDE = 900;
+  const scale = Math.min(1, MAX_SIDE / Math.max(video.videoWidth, video.videoHeight));
+  canvas.width = video.videoWidth * scale;
+  canvas.height = video.videoHeight * scale;
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  const photoDataUrl = canvas.toDataURL("image/jpeg", 0.85);
+
+  showView("minifig-ai");
+  showMinifigAiLoading();
+
+  try {
+    const res = await fetch("/api/identify-minifig", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ image: photoDataUrl }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      const err = new Error(data.error || "IDENTIFY_FAILED");
+      err.status = res.status;
+      throw err;
+    }
+    renderMinifigAiResult(data, photoDataUrl);
+  } catch (err) {
+    showMinifigAiError(err);
+  }
+});
+
+function showMinifigAiLoading() {
+  $("#minifigAiContent").innerHTML = `
+    <div class="state-msg">
+      <div class="big">🤖</div>
+      AI 正在辨識人偶，請稍候…
+    </div>`;
+}
+
+function showMinifigAiError(err) {
+  const msg =
+    err.status === 401 || err.status === 403 || err.status === 500
+      ? "AI 辨識服務暫時無法使用，請稍後再試"
+      : "AI 辨識失敗：" + err.message;
+  $("#minifigAiContent").innerHTML = `
+    <div class="state-msg">
+      <div class="big">⚠️</div>
+      ${escapeHtml(msg)}
+      <div style="display:flex;gap:8px;justify-content:center;margin-top:14px">
+        <button class="pill-btn retry-btn" onclick="showView('scan-minifig')">重新拍照</button>
+        <button class="pill-btn retry-btn" onclick="goToReview('', 'minifig')">手動輸入</button>
+      </div>
+    </div>`;
+}
+
+function renderMinifigAiResult(data, photoDataUrl) {
+  const result = data.result;
+  const guesses = result && Array.isArray(result.guesses) ? result.guesses : [];
+  if (!guesses.length) {
+    $("#minifigAiContent").innerHTML = `
+      <div class="result-card">
+        <img class="result-img" src="${photoDataUrl}" alt="" />
+        <p class="muted">AI 看不出這是哪一款人偶，你可以改用下面的方式手動查詢：</p>
+        <div style="display:flex;gap:8px">
+          <button class="pill-btn full" onclick="showView('scan-minifig')">重新拍照</button>
+          <button class="pill-btn full" onclick="goToReview('', 'minifig')">手動輸入</button>
+        </div>
+      </div>`;
+    return;
+  }
+  const confidenceLabel = { high: "😀 高", medium: "🤔 中", low: "😅 低" };
+  const rows = guesses
+    .map(
+      (g, i) => `
+    <div class="part-row" data-idx="${i}" style="cursor:pointer">
+      <div class="pr-text">${escapeHtml(g.name || "")}${g.theme ? `<br/><span class="muted">${escapeHtml(g.theme)}</span>` : ""}</div>
+      <div class="pr-qty">${confidenceLabel[g.confidence] || ""}</div>
+    </div>`
+    )
+    .join("");
+  $("#minifigAiContent").innerHTML = `
+    <div class="result-card">
+      <img class="result-img" src="${photoDataUrl}" alt="" />
+      ${result.description ? `<p class="muted">${escapeHtml(result.description)}</p>` : ""}
+      <p class="muted" style="margin-top:10px">AI 猜測可能是（點擊查詢 Rebrickable，可能會列出相近的搜尋結果讓你挑選）：</p>
+      <div class="parts-list">${rows}</div>
+      <div style="display:flex;gap:8px;margin-top:14px">
+        <button class="pill-btn full" onclick="showView('scan-minifig')">重新拍照</button>
+        <button class="pill-btn full" onclick="goToReview('', 'minifig')">都不是？手動輸入</button>
+      </div>
+    </div>`;
+  $$("#minifigAiContent .part-row").forEach((row) => {
+    row.addEventListener("click", () => {
+      const g = guesses[+row.dataset.idx];
+      runLookup("minifig", g.query || g.name);
+    });
+  });
 }
 
 // ============================================================
