@@ -1,8 +1,7 @@
-// ===== 積木掃描小幫手 =====
-// Rebrickable API 直接從瀏覽器呼叫；API Key 只存在 localStorage（僅限本機瀏覽器）
+// ===== 積木收藏本 =====
+// Rebrickable 查詢透過後端代理呼叫；BrickEconomy 用來查詢目前市場價值（全新／二手）
 
 const API_BASE = "/api/rebrickable";
-const LS_KEY_HISTORY = "rb_history";
 const LS_KEY_SESSION = "rb_session_token";
 const LS_KEY_USER = "rb_user";
 const GOOGLE_CLIENT_ID = "529227251585-n19luhp082iea90eau84uulsuh7kn3sb.apps.googleusercontent.com";
@@ -12,9 +11,7 @@ const $$ = (sel) => document.querySelectorAll(sel);
 
 // ---------- 導覽 ----------
 const viewStack = ["home"];
-let currentReviewMode = "set"; // 'set' | 'part'
 let currentManualMode = "set";
-let pendingScanSourceMode = "set"; // which mode to default review screen to
 
 function showView(name, { pushHistory = true } = {}) {
   $$(".view").forEach((v) => v.classList.remove("active"));
@@ -22,27 +19,12 @@ function showView(name, { pushHistory = true } = {}) {
   if (el) el.classList.add("active");
 
   const titles = {
-    home: "積木掃描小幫手",
-    "scan-ocr": "掃描組合盒",
-    "scan-qr": "掃描零件 / QR",
-    "scan-minifig": "AI 辨識人偶",
-    "minifig-ai": "AI 辨識結果",
-    review: "確認辨識結果",
+    home: "我的收藏",
     result: "查詢結果",
     settings: "設定",
-    collection: "我的收藏",
   };
-  $("#pageTitle").textContent = titles[name] || "積木掃描小幫手";
+  $("#pageTitle").textContent = titles[name] || "我的收藏";
   $("#backBtn").classList.toggle("hidden", name === "home");
-
-  // stop camera streams when leaving their views
-  if (name !== "scan-ocr") stopOcrCamera();
-  if (name !== "scan-qr") stopQrScanner();
-  if (name !== "scan-minifig") stopMinifigCamera();
-
-  if (name === "scan-ocr") startOcrCamera();
-  if (name === "scan-qr") startQrScanner();
-  if (name === "scan-minifig") startMinifigCamera();
 
   if (pushHistory) {
     if (viewStack[viewStack.length - 1] !== name) viewStack.push(name);
@@ -62,13 +44,6 @@ function goBack() {
 $("#backBtn").addEventListener("click", goBack);
 $("#settingsBtn").addEventListener("click", () => {
   showView("settings");
-});
-
-$$("[data-goto]").forEach((btn) => {
-  btn.addEventListener("click", () => {
-    pendingScanSourceMode = btn.dataset.goto === "scan-ocr" ? "set" : "part";
-    showView(btn.dataset.goto);
-  });
 });
 
 // ---------- Toast ----------
@@ -175,6 +150,7 @@ async function handleGoogleCredential(response) {
     if (!res.ok) throw new Error(data.error || "LOGIN_FAILED");
     setSession(data.token, data.user);
     toast("登入成功，歡迎 " + (data.user.name || "回來"));
+    loadCollection();
   } catch (err) {
     toast("登入失敗，請再試一次", "error");
   }
@@ -186,18 +162,12 @@ async function logout() {
   } catch {}
   clearSession();
   toast("已登出");
-  if (viewStack[viewStack.length - 1] === "collection") goBack();
+  loadCollection();
 }
 $("#accLogoutBtn").addEventListener("click", logout);
 
 // ---------- 我的收藏 ----------
 const COLLECTION_TYPE_LABEL = { set: "組合", part: "零件", minifig: "人偶" };
-
-$("#goCollectionBtn").addEventListener("click", () => {
-  showView("collection");
-  loadCollection();
-});
-$("#goLoginFromCollectionBtn").addEventListener("click", () => showView("home"));
 
 async function loadCollection() {
   const listEl = $("#collectionList");
@@ -223,9 +193,45 @@ async function loadCollection() {
   }
 }
 
+function formatCurrency(amount) {
+  try {
+    return new Intl.NumberFormat("zh-Hant", {
+      style: "currency",
+      currency: "TWD",
+      maximumFractionDigits: 0,
+    }).format(amount);
+  } catch {
+    return "NT$" + Math.round(amount).toLocaleString();
+  }
+}
+
+function updateTotalValueStat(items) {
+  let total = 0;
+  let knownCount = 0;
+  let unknownCount = 0;
+  items.forEach((it) => {
+    if (it.value_amount != null) {
+      total += it.value_amount * it.quantity;
+      knownCount++;
+    } else {
+      unknownCount++;
+    }
+  });
+  $("#totalValueAmount").textContent = formatCurrency(total);
+  const sub = $("#totalValueSub");
+  if (!items.length) {
+    sub.textContent = "還沒有收藏任何東西";
+  } else if (unknownCount > 0) {
+    sub.textContent = `${knownCount} 項已知價值加總，還有 ${unknownCount} 項尚無價格資料`;
+  } else {
+    sub.textContent = `共 ${items.length} 項收藏`;
+  }
+}
+
 function renderCollectionList(items) {
   const listEl = $("#collectionList");
   const emptyEl = $("#collectionEmptyHint");
+  updateTotalValueStat(items);
   if (!items.length) {
     listEl.innerHTML = "";
     emptyEl.classList.remove("hidden");
@@ -239,17 +245,29 @@ function renderCollectionList(items) {
       ${it.image_url ? `<img src="${it.image_url}" alt="" />` : `<div style="width:44px;height:44px;background:var(--bg-elevated);border-radius:8px"></div>`}
       <div class="ci-text">
         <div class="ci-title">${escapeHtml(it.name || it.item_ref)}</div>
-        <div class="ci-sub">${COLLECTION_TYPE_LABEL[it.item_type] || it.item_type} ・ ${escapeHtml(it.item_ref)}</div>
+        <div class="ci-sub">
+          ${COLLECTION_TYPE_LABEL[it.item_type] || it.item_type} ・ ${escapeHtml(it.item_ref)}
+          <span class="ci-condition ${it.condition === "used" ? "used" : "new"}">${it.condition === "used" ? "二手" : "全新"}</span>
+        </div>
+        <div class="ci-value">${it.value_amount != null ? formatCurrency(it.value_amount) + " / 個" : "價值未知"}</div>
       </div>
       <span class="ci-qty">×${it.quantity}</span>
+      <button class="ci-edit" data-edit-id="${it.id}" aria-label="編輯">✏️</button>
       <button class="ci-remove" data-remove-id="${it.id}" aria-label="移除">🗑</button>
     </div>`
     )
     .join("");
   $$("#collectionList .collection-item").forEach((row) => {
     row.addEventListener("click", (e) => {
-      if (e.target.closest(".ci-remove")) return;
+      if (e.target.closest(".ci-remove") || e.target.closest(".ci-edit")) return;
       runLookup(row.dataset.type, row.dataset.ref);
+    });
+  });
+  $$("#collectionList .ci-edit").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const item = items.find((it) => it.id === btn.dataset.editId);
+      if (item) openEditItem(item);
     });
   });
   $$("#collectionList .ci-remove").forEach((btn) => {
@@ -270,24 +288,155 @@ function renderCollectionList(items) {
   });
 }
 
-async function addToCollection(itemType, itemRef, name, imageUrl) {
+async function addToCollection(itemType, itemRef, name, imageUrl, condition) {
   if (!isLoggedIn()) {
-    toast("請先在首頁登入 Google 帳號才能收藏", "error");
-    showView("home");
+    toast("請先登入 Google 帳號才能收藏", "error");
     return;
   }
   try {
     const res = await apiFetch("/api/collection", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ item_type: itemType, item_ref: itemRef, name, image_url: imageUrl }),
+      body: JSON.stringify({ item_type: itemType, item_ref: itemRef, name, image_url: imageUrl, condition }),
     });
+    const data = await res.json().catch(() => null);
     if (!res.ok) throw new Error("ADD_FAILED");
-    toast("已加入收藏 ⭐");
+    const label = condition === "used" ? "二手" : "全新";
+    if (data && data.item && data.item.value_amount != null) {
+      toast(`已加入收藏（${label}，${formatCurrency(data.item.value_amount)}）⭐`);
+    } else {
+      toast(`已加入收藏（${label}）⭐ 尚無價格資料，可在收藏清單裡手動輸入`);
+    }
+    loadCollection();
   } catch (err) {
     toast("加入收藏失敗，請再試一次", "error");
   }
 }
+
+// ---------- 加入收藏：選擇全新／二手 ----------
+let pendingAddItem = null;
+
+function openConditionPicker(itemType, itemRef, name, imageUrl) {
+  if (!isLoggedIn()) {
+    toast("請先登入 Google 帳號才能收藏", "error");
+    return;
+  }
+  pendingAddItem = { itemType, itemRef, name, imageUrl };
+  $("#conditionModalSub").textContent = name || itemRef;
+  $("#conditionModal").classList.remove("hidden");
+}
+function closeConditionModal() {
+  $("#conditionModal").classList.add("hidden");
+  pendingAddItem = null;
+}
+$$("#conditionModal .condition-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    if (!pendingAddItem) return;
+    const { itemType, itemRef, name, imageUrl } = pendingAddItem;
+    const condition = btn.dataset.condition;
+    closeConditionModal();
+    addToCollection(itemType, itemRef, name, imageUrl, condition);
+  });
+});
+$("#conditionModalCancel").addEventListener("click", closeConditionModal);
+
+// ---------- 編輯收藏項目 ----------
+let editingItem = null;
+let editingQty = 1;
+let editingCondition = "new";
+
+function openEditItem(item) {
+  editingItem = item;
+  editingQty = item.quantity;
+  editingCondition = item.condition === "used" ? "used" : "new";
+  $("#editItemName").textContent = `${item.name || item.item_ref}（${COLLECTION_TYPE_LABEL[item.item_type] || item.item_type} ・ ${item.item_ref}）`;
+  $$("#editConditionSeg .seg-btn").forEach((b) => b.classList.toggle("active", b.dataset.condition === editingCondition));
+  $("#editQtyValue").textContent = editingQty;
+  $("#editValueInput").value = item.value_amount != null ? item.value_amount : "";
+  $("#editItemModal").classList.remove("hidden");
+}
+function closeEditModal() {
+  $("#editItemModal").classList.add("hidden");
+  editingItem = null;
+}
+$("#editConditionSeg").addEventListener("click", (e) => {
+  const btn = e.target.closest(".seg-btn");
+  if (!btn) return;
+  editingCondition = btn.dataset.condition;
+  $$("#editConditionSeg .seg-btn").forEach((b) => b.classList.toggle("active", b === btn));
+});
+$("#editQtyMinus").addEventListener("click", () => {
+  editingQty = Math.max(1, editingQty - 1);
+  $("#editQtyValue").textContent = editingQty;
+});
+$("#editQtyPlus").addEventListener("click", () => {
+  editingQty = Math.min(9999, editingQty + 1);
+  $("#editQtyValue").textContent = editingQty;
+});
+
+function priceReasonMessage(reason) {
+  const map = {
+    NO_KEY: "尚未設定價格查詢金鑰",
+    UNSUPPORTED_TYPE: "零件沒有市場價格資料",
+    RATE_LIMITED: "今日查詢次數已用完，請明天再試",
+    NO_VALUE: "查無這個項目的價格資料",
+  };
+  return map[reason] || "價格查詢失敗，請稍後再試";
+}
+
+$("#editRefreshPriceBtn").addEventListener("click", async (e) => {
+  if (!editingItem) return;
+  const btn = e.currentTarget;
+  btn.disabled = true;
+  btn.textContent = "查詢中…";
+  try {
+    const res = await apiFetch("/api/collection/" + encodeURIComponent(editingItem.id), {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ refresh_price: true }),
+    });
+    const data = await res.json().catch(() => null);
+    if (!res.ok) throw new Error((data && data.reason) || "REFRESH_FAILED");
+    if (data.item && data.item.value_amount != null) {
+      $("#editValueInput").value = data.item.value_amount;
+      toast("價格已更新");
+    } else {
+      toast("查無價格資料", "error");
+    }
+  } catch (err) {
+    toast(priceReasonMessage(err.message), "error");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "🔄 重新查詢市場價格";
+  }
+});
+
+$("#editSaveBtn").addEventListener("click", async () => {
+  if (!editingItem) return;
+  const valRaw = $("#editValueInput").value.trim();
+  const body = {
+    quantity: editingQty,
+    condition: editingCondition,
+  };
+  if (valRaw !== "") {
+    const num = Number(valRaw);
+    if (Number.isFinite(num) && num >= 0) body.value_amount = num;
+  }
+  try {
+    const res = await apiFetch("/api/collection/" + encodeURIComponent(editingItem.id), {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) throw new Error("SAVE_FAILED");
+    toast("已更新");
+    closeEditModal();
+    loadCollection();
+  } catch (err) {
+    toast("更新失敗，請再試一次", "error");
+  }
+});
+$("#editCancelBtn").addEventListener("click", closeEditModal);
 
 // ---------- Manual search ----------
 $("#manualModeSeg").addEventListener("click", (e) => {
@@ -309,294 +458,6 @@ $("#manualSearchBtn").addEventListener("click", () => {
 $("#manualInput").addEventListener("keydown", (e) => {
   if (e.key === "Enter") $("#manualSearchBtn").click();
 });
-
-// ---------- Review screen (after OCR / QR) ----------
-$("#reviewModeSeg").addEventListener("click", (e) => {
-  const btn = e.target.closest(".seg-btn");
-  if (!btn) return;
-  $$("#reviewModeSeg .seg-btn").forEach((b) => b.classList.remove("active"));
-  btn.classList.add("active");
-  currentReviewMode = btn.dataset.mode;
-});
-
-const REVIEW_HINTS = {
-  set: "會用編號查詢組合，例如 75192 或 75192-1",
-  part: "會用零件編號查詢，例如 3001",
-  minifig: "可輸入人偶編號（例如 fig-000001）或角色名稱（例如 Batman）",
-};
-function updateReviewHint() {
-  const el = $("#reviewHint");
-  if (el) el.textContent = REVIEW_HINTS[currentReviewMode] || "";
-}
-$("#reviewModeSeg").addEventListener("click", updateReviewHint);
-
-$("#reviewSearchBtn").addEventListener("click", () => {
-  const val = $("#reviewInput").value.trim();
-  if (!val) {
-    toast("辨識結果是空的，請重新掃描或手動輸入");
-    return;
-  }
-  runLookup(currentReviewMode, val);
-});
-
-function goToReview(text, mode) {
-  currentReviewMode = mode;
-  $$("#reviewModeSeg .seg-btn").forEach((b) =>
-    b.classList.toggle("active", b.dataset.mode === mode)
-  );
-  $("#reviewInput").value = text;
-  updateReviewHint();
-  showView("review");
-}
-
-// ============================================================
-// OCR (組合編號) — Tesseract.js
-// ============================================================
-let ocrStream = null;
-
-async function startOcrCamera() {
-  try {
-    ocrStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 960 } },
-      audio: false,
-    });
-    $("#ocrVideo").srcObject = ocrStream;
-  } catch (err) {
-    toast("無法開啟相機：" + err.message, "error");
-  }
-}
-
-function stopOcrCamera() {
-  if (ocrStream) {
-    ocrStream.getTracks().forEach((t) => t.stop());
-    ocrStream = null;
-  }
-}
-
-$("#ocrCaptureBtn").addEventListener("click", async () => {
-  const video = $("#ocrVideo");
-  if (!video.videoWidth) {
-    toast("相機還沒準備好，稍等一下再試");
-    return;
-  }
-  const canvas = $("#ocrCanvas");
-  // Crop exactly the area shown inside the on-screen guide frame. The video
-  // element uses object-fit:cover, so its native pixel size (video.videoWidth/
-  // videoHeight) usually has a different aspect ratio than what's displayed —
-  // mapping the guide frame's on-screen rect through the actual cover scale
-  // (instead of assuming raw-frame percentages) keeps OCR looking exactly
-  // where the user aimed the camera.
-  const guideEl = document.querySelector(".frame-guide");
-  const videoRect = video.getBoundingClientRect();
-  const guideRect = guideEl.getBoundingClientRect();
-  const nativeW = video.videoWidth;
-  const nativeH = video.videoHeight;
-  const scale = Math.max(videoRect.width / nativeW, videoRect.height / nativeH) || 1;
-  const offsetX = (nativeW - videoRect.width / scale) / 2;
-  const offsetY = (nativeH - videoRect.height / scale) / 2;
-  const clamp = (v, min, max) => Math.min(Math.max(v, min), max);
-  const cropX = clamp(offsetX + (guideRect.left - videoRect.left) / scale, 0, nativeW);
-  const cropY = clamp(offsetY + (guideRect.top - videoRect.top) / scale, 0, nativeH);
-  const cropW = clamp(guideRect.width / scale, 1, nativeW - cropX);
-  const cropH = clamp(guideRect.height / scale, 1, nativeH - cropY);
-
-  // Upscale the crop a bit — small/thin digits recognize far more reliably
-  // when Tesseract has more pixels to work with.
-  const UPSCALE = 2;
-  canvas.width = cropW * UPSCALE;
-  canvas.height = cropH * UPSCALE;
-  const ctx = canvas.getContext("2d");
-  ctx.drawImage(video, cropX, cropY, cropW, cropH, 0, 0, canvas.width, canvas.height);
-
-  toast("辨識中，請稍候…");
-  try {
-    const { data } = await Tesseract.recognize(canvas, "eng", {
-      tessedit_char_whitelist: "0123456789-",
-      tessedit_pageseg_mode: "7", // single text line — matches the thin guide-frame strip
-    });
-    const raw = (data.text || "").trim();
-    // LEGO set numbers are 4-5 digits (the age "8+", short model-variant
-    // numbers, and the piece count printed further down the box are 1-3
-    // digits, so preferring a 4-5 digit run first avoids picking those up).
-    const match =
-      raw.match(/\d{4,5}(-\d{1,2})?/) || raw.match(/\d{3,7}(-\d{1,2})?/);
-    const guess = match ? match[0] : raw.replace(/\s+/g, "");
-    goToReview(guess, "set");
-  } catch (err) {
-    toast("辨識失敗：" + err.message, "error");
-  }
-});
-
-// ============================================================
-// QR / Barcode — html5-qrcode
-// ============================================================
-let qrScanner = null;
-let qrRunning = false;
-
-async function startQrScanner() {
-  if (qrRunning) return;
-  try {
-    qrScanner = new Html5Qrcode("qrReader");
-    qrRunning = true;
-    await qrScanner.start(
-      { facingMode: "environment" },
-      { fps: 10, qrbox: { width: 240, height: 240 } },
-      (decodedText) => onQrDetected(decodedText),
-      () => {} // ignore per-frame scan failures
-    );
-  } catch (err) {
-    qrRunning = false;
-    toast("無法啟動掃描器：" + err.message, "error");
-  }
-}
-
-function stopQrScanner() {
-  if (qrScanner && qrRunning) {
-    qrRunning = false;
-    qrScanner.stop().then(() => qrScanner.clear()).catch(() => {});
-  }
-  qrScanner = null;
-}
-
-function onQrDetected(text) {
-  if (!qrRunning) return; // avoid double trigger
-  stopQrScanner();
-  // Try to pull a plausible LEGO number out of the text (handles URLs too)
-  let guess = text.trim();
-  const numMatch = text.match(/(\d{3,7})(-\d{1,2})?(?!.*\d)/);
-  if (numMatch) guess = numMatch[0];
-  goToReview(guess, "part");
-}
-
-// ============================================================
-// AI 人偶辨識 — 拍照後送到後端，由 Claude 視覺模型辨識
-// ============================================================
-let minifigStream = null;
-
-async function startMinifigCamera() {
-  try {
-    minifigStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 960 } },
-      audio: false,
-    });
-    $("#minifigVideo").srcObject = minifigStream;
-  } catch (err) {
-    toast("無法開啟相機：" + err.message, "error");
-  }
-}
-
-function stopMinifigCamera() {
-  if (minifigStream) {
-    minifigStream.getTracks().forEach((t) => t.stop());
-    minifigStream = null;
-  }
-}
-
-$("#minifigCaptureBtn").addEventListener("click", async () => {
-  const video = $("#minifigVideo");
-  if (!video.videoWidth) {
-    toast("相機還沒準備好，稍等一下再試");
-    return;
-  }
-  const canvas = $("#minifigCanvas");
-  // Cap the longest side so the upload stays small & fast, while keeping enough
-  // detail for the AI to make out face/torso print/accessories.
-  const MAX_SIDE = 900;
-  const scale = Math.min(1, MAX_SIDE / Math.max(video.videoWidth, video.videoHeight));
-  canvas.width = video.videoWidth * scale;
-  canvas.height = video.videoHeight * scale;
-  const ctx = canvas.getContext("2d");
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-  const photoDataUrl = canvas.toDataURL("image/jpeg", 0.85);
-
-  showView("minifig-ai");
-  showMinifigAiLoading();
-
-  try {
-    const res = await fetch("/api/identify-minifig", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ image: photoDataUrl }),
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      const err = new Error(data.error || "IDENTIFY_FAILED");
-      err.status = res.status;
-      throw err;
-    }
-    renderMinifigAiResult(data, photoDataUrl);
-  } catch (err) {
-    showMinifigAiError(err);
-  }
-});
-
-function showMinifigAiLoading() {
-  $("#minifigAiContent").innerHTML = `
-    <div class="state-msg">
-      <div class="big">🤖</div>
-      AI 正在辨識人偶，請稍候…
-    </div>`;
-}
-
-function showMinifigAiError(err) {
-  const msg =
-    err.status === 401 || err.status === 403 || err.status === 500
-      ? "AI 辨識服務暫時無法使用，請稍後再試"
-      : "AI 辨識失敗：" + err.message;
-  $("#minifigAiContent").innerHTML = `
-    <div class="state-msg">
-      <div class="big">⚠️</div>
-      ${escapeHtml(msg)}
-      <div style="display:flex;gap:8px;justify-content:center;margin-top:14px">
-        <button class="pill-btn retry-btn" onclick="showView('scan-minifig')">重新拍照</button>
-        <button class="pill-btn retry-btn" onclick="goToReview('', 'minifig')">手動輸入</button>
-      </div>
-    </div>`;
-}
-
-function renderMinifigAiResult(data, photoDataUrl) {
-  const result = data.result;
-  const guesses = result && Array.isArray(result.guesses) ? result.guesses : [];
-  if (!guesses.length) {
-    $("#minifigAiContent").innerHTML = `
-      <div class="result-card">
-        <img class="result-img" src="${photoDataUrl}" alt="" />
-        <p class="muted">AI 看不出這是哪一款人偶，你可以改用下面的方式手動查詢：</p>
-        <div style="display:flex;gap:8px">
-          <button class="pill-btn full" onclick="showView('scan-minifig')">重新拍照</button>
-          <button class="pill-btn full" onclick="goToReview('', 'minifig')">手動輸入</button>
-        </div>
-      </div>`;
-    return;
-  }
-  const confidenceLabel = { high: "😀 高", medium: "🤔 中", low: "😅 低" };
-  const rows = guesses
-    .map(
-      (g, i) => `
-    <div class="part-row" data-idx="${i}" style="cursor:pointer">
-      <div class="pr-text">${escapeHtml(g.name || "")}${g.theme ? `<br/><span class="muted">${escapeHtml(g.theme)}</span>` : ""}</div>
-      <div class="pr-qty">${confidenceLabel[g.confidence] || ""}</div>
-    </div>`
-    )
-    .join("");
-  $("#minifigAiContent").innerHTML = `
-    <div class="result-card">
-      <img class="result-img" src="${photoDataUrl}" alt="" />
-      ${result.description ? `<p class="muted">${escapeHtml(result.description)}</p>` : ""}
-      <p class="muted" style="margin-top:10px">AI 猜測可能是（點擊查詢 Rebrickable，可能會列出相近的搜尋結果讓你挑選）：</p>
-      <div class="parts-list">${rows}</div>
-      <div style="display:flex;gap:8px;margin-top:14px">
-        <button class="pill-btn full" onclick="showView('scan-minifig')">重新拍照</button>
-        <button class="pill-btn full" onclick="goToReview('', 'minifig')">都不是？手動輸入</button>
-      </div>
-    </div>`;
-  $$("#minifigAiContent .part-row").forEach((row) => {
-    row.addEventListener("click", () => {
-      const g = guesses[+row.dataset.idx];
-      runLookup("minifig", g.query || g.name);
-    });
-  });
-}
 
 // ============================================================
 // Rebrickable API calls
@@ -637,7 +498,6 @@ async function lookupSet(rawQuery) {
   try {
     const set = await rbFetch(`/lego/sets/${encodeURIComponent(candidate)}/`);
     await renderSetResult(set);
-    saveHistory({ type: "set", num: set.set_num, name: set.name, image: set.set_img_url });
     return;
   } catch (err) {
     if (err.status !== 404) throw err;
@@ -653,7 +513,6 @@ async function lookupSet(rawQuery) {
           showResultLoading();
           const full = await rbFetch(`/lego/sets/${encodeURIComponent(s.set_num)}/`);
           await renderSetResult(full);
-          saveHistory({ type: "set", num: full.set_num, name: full.name, image: full.set_img_url });
         },
       })),
       `找不到「${rawQuery}」的完整組合，這是相近的搜尋結果：`
@@ -667,7 +526,6 @@ async function lookupPart(rawQuery) {
   try {
     const part = await rbFetch(`/lego/parts/${encodeURIComponent(rawQuery)}/`);
     await renderPartResult(part);
-    saveHistory({ type: "part", num: part.part_num, name: part.name, image: part.part_img_url });
     return;
   } catch (err) {
     if (err.status !== 404) throw err;
@@ -682,7 +540,6 @@ async function lookupPart(rawQuery) {
           showResultLoading();
           const full = await rbFetch(`/lego/parts/${encodeURIComponent(p.part_num)}/`);
           await renderPartResult(full);
-          saveHistory({ type: "part", num: full.part_num, name: full.name, image: full.part_img_url });
         },
       })),
       `找不到「${rawQuery}」的完整零件，這是相近的搜尋結果：`
@@ -699,7 +556,6 @@ async function lookupMinifig(rawQuery) {
     try {
       const fig = await rbFetch(`/lego/minifigs/${encodeURIComponent(candidate)}/`);
       await renderMinifigResult(fig);
-      saveHistory({ type: "minifig", num: fig.set_num, name: fig.name, image: fig.set_img_url });
       return;
     } catch (err) {
       if (err.status !== 404) throw err;
@@ -716,7 +572,6 @@ async function lookupMinifig(rawQuery) {
           showResultLoading();
           const full = await rbFetch(`/lego/minifigs/${encodeURIComponent(f.set_num)}/`);
           await renderMinifigResult(full);
-          saveHistory({ type: "minifig", num: full.set_num, name: full.name, image: full.set_img_url });
         },
       })),
       `「${rawQuery}」的搜尋結果：`
@@ -806,7 +661,7 @@ async function renderSetResult(set) {
     </div>`;
 
   $("#favBtn").addEventListener("click", () =>
-    addToCollection("set", set.set_num, set.name, set.set_img_url)
+    openConditionPicker("set", set.set_num, set.name, set.set_img_url)
   );
 
   $("#loadSetMinifigsBtn").addEventListener("click", async (e) => {
@@ -839,7 +694,6 @@ async function renderSetResult(set) {
           try {
             const full = await rbFetch(`/lego/minifigs/${encodeURIComponent(f.set_num)}/`);
             await renderMinifigResult(full);
-            saveHistory({ type: "minifig", num: full.set_num, name: full.name, image: full.set_img_url });
           } catch (err) {
             showResultError(err);
           }
@@ -894,7 +748,7 @@ async function renderPartResult(part) {
     </div>`;
 
   $("#favBtn").addEventListener("click", () =>
-    addToCollection("part", part.part_num, part.name, part.part_img_url)
+    openConditionPicker("part", part.part_num, part.name, part.part_img_url)
   );
 
   $("#loadPartColorsBtn").addEventListener("click", async (e) => {
@@ -942,55 +796,9 @@ async function renderMinifigResult(fig) {
     </div>`;
 
   $("#favBtn").addEventListener("click", () =>
-    addToCollection("minifig", fig.set_num, fig.name, fig.set_img_url)
+    openConditionPicker("minifig", fig.set_num, fig.name, fig.set_img_url)
   );
 }
-
-// ---------- History ----------
-function saveHistory(item) {
-  const list = getHistory();
-  list.unshift({ ...item, ts: Date.now() });
-  const trimmed = list.slice(0, 20);
-  localStorage.setItem(LS_KEY_HISTORY, JSON.stringify(trimmed));
-  renderHistory();
-}
-function getHistory() {
-  try {
-    return JSON.parse(localStorage.getItem(LS_KEY_HISTORY) || "[]");
-  } catch {
-    return [];
-  }
-}
-function renderHistory() {
-  const list = getHistory();
-  const el = $("#historyList");
-  if (!list.length) {
-    el.innerHTML = `<div class="empty-hint">還沒有查詢紀錄</div>`;
-    return;
-  }
-  el.innerHTML = list
-    .map(
-      (it, i) => `
-    <div class="history-item" data-idx="${i}">
-      ${it.image ? `<img src="${it.image}" alt="" />` : `<div style="width:44px;height:44px;background:var(--bg-elevated);border-radius:8px"></div>`}
-      <div class="hi-text">
-        <div class="hi-title">${escapeHtml(it.name || it.num)}</div>
-        <div class="hi-sub">${{ set: "組合", part: "零件", minifig: "人偶" }[it.type] || it.type} ・ ${it.num}</div>
-      </div>
-    </div>`
-    )
-    .join("");
-  $$("#historyList .history-item").forEach((row) => {
-    row.addEventListener("click", () => {
-      const it = list[+row.dataset.idx];
-      runLookup(it.type, it.num);
-    });
-  });
-}
-$("#clearHistoryBtn").addEventListener("click", () => {
-  localStorage.removeItem(LS_KEY_HISTORY);
-  renderHistory();
-});
 
 // ---------- color map cache ----------
 const LS_KEY_COLORS = "rb_color_map_v1";
@@ -1031,9 +839,9 @@ function escapeHtml(str) {
 
 // ---------- init ----------
 window.goBack = goBack; // used by inline onclick
-renderHistory();
 renderAccountUI();
 initGoogleSignInWhenReady();
+loadCollection();
 
 // ---------- Service worker ----------
 if ("serviceWorker" in navigator) {

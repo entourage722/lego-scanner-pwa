@@ -3,15 +3,15 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
-<title>積木掃描小幫手</title>
+<title>積木收藏本</title>
 <meta name="theme-color" content="#0f172a" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<meta name="apple-mobile-web-app-title" content="積木掃描" />
+<meta name="apple-mobile-web-app-title" content="積木收藏本" />
 <link rel="manifest" href="manifest.json" />
-<link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3GwHAAADuklEQVR4nO3dS24USRRA0TDqOUPWAEOWwwJZDlOWA4MWEm1R+JsRz33PGVk2OJ9DcSszLai8e//h048FUe9ODwAnCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYC0f04P8JCPX789+Ge+f/mcmWOtObNMmeMl7ib+n+DHLOwtr7ngU+ZYa84sU+Z4LWMCeMnC3vKcBZ8yx1pzZpkyxxVG3ANcscDP+b5T5nju37ni+06Z4ypHzwA7F+FvrzhT5lhrzixT5rjasTPA7leAW8ebMsdDX7vCW1iTqx0J4NQPfP+4U+a49bkdJq/JDtsDOH3t9+v4U+a4//EJE9dkl633AKcXmLdh5z3BtjOAzc9j7dwrI34NCqdsCcCrP0+1a89cHoDNz3Pt2DsugUgTAGmXBuDyh5e6eg85A5AmANIuC8DlD6/lyr3kDECaAEgTAGkCIE0ApAmANAGQJgDSLgtgyhsf8fZduZecAUgTAGmXBuAyiJe6eg85A5AmANIuD8BlEM+1Y+9sOQOIgKfatWdcApG2LQBnAR7rf/neoGvNiWDSHJNmmWD3HNsvgU4v9K/jT5nj/scnTFyTXY7cA5xa6PvHnTLHrc/tMHlNdjh2E7z7B751vClzPPS1K7yFNbnaiMekXvm2F09Z3ClzrDVnlilzXGVEAGt5H6EiASwbn+hjUtey+flX7jGpa9n8/FfmMalr2fz82Yl9kXtOMLPt3h/+MRxpWwPw6s9jeE4wbCIA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgLStAXz/8nnn4Xijdu4TZwDStgfgLMDf7N4fR84AIuBPTuyLY5dAIuB3p/bD0XsAEbDW2X1w9/7Dpx/Hjv6bj1+/nR6BzSa8AI4JAE7wa1DSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEj7CSx178nBm1tLAAAAAElFTkSuQmCC" />
-<link rel="icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3GwHAAADuklEQVR4nO3dS24USRRA0TDqOUPWAEOWwwJZDlOWA4MWEm1R+JsRz33PGVk2OJ9DcSszLai8e//h048FUe9ODwAnCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYC0f04P8JCPX789+Ge+f/mcmWOtObNMmeMl7ib+n+DHLOwtr7ngU+ZYa84sU+Z4LWMCeMnC3vKcBZ8yx1pzZpkyxxVG3ANcscDP+b5T5nju37ni+06Z4ypHzwA7F+FvrzhT5lhrzixT5rjasTPA7leAW8ebMsdDX7vCW1iTqx0J4NQPfP+4U+a49bkdJq/JDtsDOH3t9+v4U+a4//EJE9dkl633AKcXmLdh5z3BtjOAzc9j7dwrI34NCqdsCcCrP0+1a89cHoDNz3Pt2DsugUgTAGmXBuDyh5e6eg85A5AmANIuC8DlD6/lyr3kDECaAEgTAGkCIE0ApAmANAGQJgDSLgtgyhsf8fZduZecAUgTAGmXBuAyiJe6eg85A5AmANIuD8BlEM+1Y+9sOQOIgKfatWdcApG2LQBnAR7rf/neoGvNiWDSHJNmmWD3HNsvgU4v9K/jT5nj/scnTFyTXY7cA5xa6PvHnTLHrc/tMHlNdjh2E7z7B751vClzPPS1K7yFNbnaiMekXvm2F09Z3ClzrDVnlilzXGVEAGt5H6EiASwbn+hjUtey+flX7jGpa9n8/FfmMalr2fz82Yl9kXtOMLPt3h/+MRxpWwPw6s9jeE4wbCIA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgLStAXz/8nnn4Xijdu4TZwDStgfgLMDf7N4fR84AIuBPTuyLY5dAIuB3p/bD0XsAEbDW2X1w9/7Dpx/Hjv6bj1+/nR6BzSa8AI4JAE7wa1DSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEj7CSx178nBm1tLAAAAAElFTkSuQmCC" />
+<link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3GwHAAADuklEQVR4nO3dS24USRRA0TDqOUPWAEOWwwJZDlOWA4MWEm1R+JsRz33PGVk2OJ9DcSszLai8e//h048FUe9ODwAnCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYC0f04P8JCPX789+Ge+f/mcmWOtObNMmeMl7ib+n+DHLOwtr7ngU+ZYa84sU+Z4LWMCeMnC3vKcBZ8yx1pzZpkyxxVG3ANcscDP+b5T5nju37ni+06Z4ypHzwA7F+FvrzhT5lhrzixT5rjasTPA7leAW8ebMsdDX7vCW1iTqx0J4NQPfP+4U+a49bkdJq/JDtsDOH3t9+v4U+a4//EJE9dkl633AKcXmLdh5z3BtjOAzc9j7dwrI34NCqdsCcCrP0+1a89cHoDNz3Pt2DsugUgTAGmXBuDyh5e6eg85A5AmANIuC8DlD6/lyr3kDECaAEgTAGkCIE0ApAmANAGQJgDSLgtgyhsf8fZduZecAUgTAGmXBuAyiJe6eg85A5AmANIuD8BlEM+1Y+9sOQOIgKfatWdcApG2LQBnAR7rf/neoGvNiWDSHJNmmWD3HNsvgU4v9K/jT5nj/scnTFyTXY7cA5xa6PvHnTLHrc/tMHlNdjh2E7z7B751vClzPPS1K7yFNbnaiMekXvm2F09Z3ClzrDVnlilzXGVEAGt5H6EiASwbn+hjUtey+flX7jGpa9n8/FfmMalr2fz82Yl9kXtOMLPt3h/+MRxpWwPw6s9jeE4wbCIA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgLStAXz/8nnn4Xijdu4TZwDStgfgLMDf7N4fR84AIuBPTuyLY5dAIuB3p/bD0XsAEbDW2X1w9/7Dpx/Hjv6bj1+/nR6BzSa8AI4JAE7wa1DSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEj7CSx178nBm1tLAAAAAElFTkSuQmCC" />
+<link rel="icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3GwHAAADuklEQVR4nO3dS24USRRA0TDqOUPWAEOWwwJZDlOWA4MWEm1R+JsRz33PGVk2OJ9DcSszLai8e//h048FUe9ODwAnCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYC0f04P8JCPX789+Ge+f/mcmWOtObNMmeMl7ib+n+DHLOwtr7ngU+ZYa84sU+Z4LWMCeMnC3vKcBZ8yx1pzZpkyxxVG3ANcscDP+b5T5nju37ni+06Z4ypHzwA7F+FvrzhT5lhrzixT5rjasTPA7leAW8ebMsdDX7vCW1iTqx0J4NQPfP+4U+a49bkdJq/JDtsDOH3t9+v4U+a4//EJE9dkl633AKcXmLdh5z3BtjOAzc9j7dwrI34NCqdsCcCrP0+1a89cHoDNz3Pt2DsugUgTAGmXBuDyh5e6eg85A5AmANIuC8DlD6/lyr3kDECaAEgTAGkCIE0ApAmANAGQJgDSLgtgyhsf8fZduZecAUgTAGmXBuAyiJe6eg85A5AmANIuD8BlEM+1Y+9sOQOIgKfatWdcApG2LQBnAR7rf/neoGvNiWDSHJNmmWD3HNsvgU4v9K/jT5nj/scnTFyTXY7cA5xa6PvHnTLHrc/tMHlNdjh2E7z7B751vClzPPS1K7yFNbnaiMekXvm2F09Z3ClzrDVnlilzXGVEAGt5H6EiASwbn+hjUtey+flX7jGpa9n8/FfmMalr2fz82Yl9kXtOMLPt3h/+MRxpWwPw6s9jeE4wbCIA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgLStAXz/8nnn4Xijdu4TZwDStgfgLMDf7N4fR84AIuBPTuyLY5dAIuB3p/bD0XsAEbDW2X1w9/7Dpx/Hjv6bj1+/nR6BzSa8AI4JAE7wa1DSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEj7CSx178nBm1tLAAAAAElFTkSuQmCC" />
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -20,13 +20,13 @@
 
   <header class="topbar">
     <button id="backBtn" class="icon-btn hidden" aria-label="返回">←</button>
-    <h1 id="pageTitle">積木掃描小幫手</h1>
+    <h1 id="pageTitle">我的收藏</h1>
     <button id="settingsBtn" class="icon-btn" aria-label="設定">⚙️</button>
   </header>
 
   <main id="views">
 
-    <!-- HOME -->
+    <!-- HOME = 收藏頁 -->
     <section id="view-home" class="view active">
       <div class="account-bar" id="accountBar">
         <div id="accSignedOut">
@@ -41,33 +41,6 @@
         </div>
       </div>
 
-      <div class="nav-card" id="goCollectionBtn">
-        <span class="nc-icon">⭐</span>
-        <div class="nc-text">
-          <div class="nc-title">我的收藏</div>
-          <div class="nc-sub">登入 Google 帳號，記錄你收藏的組合、零件與人偶</div>
-        </div>
-        <span class="nc-arrow">›</span>
-      </div>
-
-      <div class="hero-actions">
-        <button class="big-btn primary" data-goto="scan-ocr">
-          <span class="big-btn-icon">📦</span>
-          <span class="big-btn-label">掃描組合盒</span>
-          <span class="big-btn-sub">拍下盒上印的組合編號</span>
-        </button>
-        <button class="big-btn secondary" data-goto="scan-qr">
-          <span class="big-btn-icon">🔲</span>
-          <span class="big-btn-label">掃描零件 / QR code</span>
-          <span class="big-btn-sub">掃描包裝、零件或人偶包裝上的條碼</span>
-        </button>
-        <button class="big-btn ai" data-goto="scan-minifig">
-          <span class="big-btn-icon">🤖</span>
-          <span class="big-btn-label">AI 辨識人偶</span>
-          <span class="big-btn-sub">拍下人偶本體（不用包裝），AI 幫你猜是誰</span>
-        </button>
-      </div>
-
       <div class="manual-search card">
         <div class="segmented" id="manualModeSeg">
           <button class="seg-btn active" data-mode="set">組合編號</button>
@@ -80,65 +53,23 @@
         </div>
       </div>
 
-      <div class="history-block">
+      <div id="collectionSignedOutHint" class="state-msg hidden">
+        <div class="big">🔒</div>
+        <p>請先登入 Google 帳號才能查看與新增收藏</p>
+      </div>
+
+      <div id="collectionContent">
+        <div class="stats-card">
+          <div class="stats-label">總價值</div>
+          <div class="stats-value" id="totalValueAmount">NT$ 0</div>
+          <div class="stats-sub" id="totalValueSub"></div>
+        </div>
+
         <div class="section-head">
-          <h2>最近查詢</h2>
-          <button id="clearHistoryBtn" class="link-btn">清除</button>
+          <h2>我的收藏</h2>
         </div>
-        <div id="historyList" class="history-list"></div>
-      </div>
-    </section>
-
-    <!-- OCR SCAN -->
-    <section id="view-scan-ocr" class="view">
-      <div class="camera-wrap">
-        <video id="ocrVideo" autoplay playsinline muted></video>
-        <div class="frame-guide"></div>
-        <p class="camera-hint">把組合盒上印的「組合編號」對準框內，盡量靠近、對焦清楚後拍照</p>
-      </div>
-      <div class="camera-controls">
-        <button id="ocrCaptureBtn" class="capture-btn" aria-label="拍照辨識"></button>
-      </div>
-      <canvas id="ocrCanvas" class="hidden"></canvas>
-    </section>
-
-    <!-- QR / BARCODE SCAN -->
-    <section id="view-scan-qr" class="view">
-      <div class="camera-wrap">
-        <div id="qrReader"></div>
-        <p class="camera-hint">將 QR code 或條碼對準畫面，會自動偵測</p>
-      </div>
-    </section>
-
-    <!-- AI MINIFIG SCAN -->
-    <section id="view-scan-minifig" class="view">
-      <div class="camera-wrap">
-        <video id="minifigVideo" autoplay playsinline muted></video>
-        <p class="camera-hint">把人偶本體放在畫面正中央，光線充足、盡量清楚後拍照</p>
-      </div>
-      <div class="camera-controls">
-        <button id="minifigCaptureBtn" class="capture-btn" aria-label="拍照辨識"></button>
-      </div>
-      <canvas id="minifigCanvas" class="hidden"></canvas>
-    </section>
-
-    <!-- AI MINIFIG RESULT -->
-    <section id="view-minifig-ai" class="view">
-      <div id="minifigAiContent"></div>
-    </section>
-
-    <!-- REVIEW RECOGNIZED TEXT -->
-    <section id="view-review" class="view">
-      <div class="card">
-        <p class="muted">辨識結果（可修改後再查詢）：</p>
-        <div class="segmented" id="reviewModeSeg">
-          <button class="seg-btn active" data-mode="set">組合編號</button>
-          <button class="seg-btn" data-mode="part">零件編號</button>
-          <button class="seg-btn" data-mode="minifig">人偶</button>
-        </div>
-        <input id="reviewInput" type="text" class="review-input" />
-        <p class="muted" id="reviewHint" style="text-align:center;margin-top:-4px"></p>
-        <button id="reviewSearchBtn" class="pill-btn full">查詢 Rebrickable</button>
+        <div class="collection-list" id="collectionList"></div>
+        <p class="empty-hint hidden" id="collectionEmptyHint">還沒有收藏任何東西，搜尋組合、零件或人偶後按「加入收藏」吧！</p>
       </div>
     </section>
 
@@ -151,30 +82,71 @@
     <section id="view-settings" class="view">
       <div class="card">
         <h2>關於</h2>
-        <p class="muted">本 App 使用 Rebrickable 提供的公開資料庫與 API，僅供個人查詢樂高組合與零件資訊之用，與 LEGO® 官方及 Rebrickable 無關聯。</p>
-      </div>
-    </section>
-
-    <!-- MY COLLECTION -->
-    <section id="view-collection" class="view">
-      <div id="collectionSignedOutHint" class="state-msg hidden">
-        <div class="big">🔒</div>
-        <p>請先登入 Google 帳號才能查看收藏</p>
-        <div><button class="pill-btn retry-btn" id="goLoginFromCollectionBtn">前往首頁登入</button></div>
-      </div>
-      <div id="collectionContent">
-        <div class="collection-list" id="collectionList"></div>
-        <p class="empty-hint hidden" id="collectionEmptyHint">還沒有收藏任何東西，去掃描或查詢後按「⭐ 加入收藏」吧！</p>
+        <p class="muted">本 App 使用 Rebrickable 提供的公開資料庫與 API 查詢樂高組合、零件與人偶資訊，並使用 BrickEconomy 的價格資料估算收藏的目前價值，僅供個人記錄之用，與 LEGO® 官方、Rebrickable、BrickEconomy 皆無關聯。</p>
       </div>
     </section>
 
   </main>
 
+  <!-- 加入收藏時選擇全新／二手 -->
+  <div id="conditionModal" class="modal-overlay hidden">
+    <div class="modal-sheet">
+      <h3>加入收藏</h3>
+      <p class="muted" id="conditionModalSub"></p>
+      <div class="condition-choice">
+        <button class="condition-btn" data-condition="new">
+          <span class="cb-icon">✨</span>
+          <span class="cb-label">全新<br/>New</span>
+        </button>
+        <button class="condition-btn" data-condition="used">
+          <span class="cb-icon">🔧</span>
+          <span class="cb-label">二手<br/>Used</span>
+        </button>
+      </div>
+      <button class="link-btn" id="conditionModalCancel">取消</button>
+    </div>
+  </div>
+
+  <!-- 編輯收藏項目 -->
+  <div id="editItemModal" class="modal-overlay hidden">
+    <div class="modal-sheet">
+      <h3>編輯收藏</h3>
+      <p class="muted" id="editItemName"></p>
+
+      <div class="edit-row">
+        <label>狀態</label>
+        <div class="segmented" id="editConditionSeg">
+          <button class="seg-btn" data-condition="new">全新</button>
+          <button class="seg-btn" data-condition="used">二手</button>
+        </div>
+      </div>
+
+      <div class="edit-row">
+        <label>數量</label>
+        <div class="qty-stepper">
+          <button id="editQtyMinus" class="step-btn" type="button">−</button>
+          <span id="editQtyValue">1</span>
+          <button id="editQtyPlus" class="step-btn" type="button">＋</button>
+        </div>
+      </div>
+
+      <div class="edit-row">
+        <label for="editValueInput">目前價值（NT$）</label>
+        <input type="number" id="editValueInput" min="0" step="1" placeholder="尚無資料" />
+      </div>
+
+      <button class="pill-btn full" id="editRefreshPriceBtn">🔄 重新查詢市場價格</button>
+
+      <div style="display:flex;gap:8px;margin-top:14px">
+        <button class="pill-btn full" id="editSaveBtn">儲存</button>
+        <button class="pill-btn full retry-btn" id="editCancelBtn">取消</button>
+      </div>
+    </div>
+  </div>
+
   <div id="toast" class="toast hidden"></div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
-<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="app.js"></script>
 </body>
