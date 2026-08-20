@@ -376,22 +376,46 @@ $("#ocrCaptureBtn").addEventListener("click", async () => {
     return;
   }
   const canvas = $("#ocrCanvas");
-  // crop roughly to the guide frame area for better OCR accuracy
-  const sw = video.videoWidth;
-  const sh = video.videoHeight;
-  const cropX = sw * 0.08, cropY = sh * 0.38, cropW = sw * 0.84, cropH = sh * 0.24;
-  canvas.width = cropW;
-  canvas.height = cropH;
+  // Crop exactly the area shown inside the on-screen guide frame. The video
+  // element uses object-fit:cover, so its native pixel size (video.videoWidth/
+  // videoHeight) usually has a different aspect ratio than what's displayed —
+  // mapping the guide frame's on-screen rect through the actual cover scale
+  // (instead of assuming raw-frame percentages) keeps OCR looking exactly
+  // where the user aimed the camera.
+  const guideEl = document.querySelector(".frame-guide");
+  const videoRect = video.getBoundingClientRect();
+  const guideRect = guideEl.getBoundingClientRect();
+  const nativeW = video.videoWidth;
+  const nativeH = video.videoHeight;
+  const scale = Math.max(videoRect.width / nativeW, videoRect.height / nativeH) || 1;
+  const offsetX = (nativeW - videoRect.width / scale) / 2;
+  const offsetY = (nativeH - videoRect.height / scale) / 2;
+  const clamp = (v, min, max) => Math.min(Math.max(v, min), max);
+  const cropX = clamp(offsetX + (guideRect.left - videoRect.left) / scale, 0, nativeW);
+  const cropY = clamp(offsetY + (guideRect.top - videoRect.top) / scale, 0, nativeH);
+  const cropW = clamp(guideRect.width / scale, 1, nativeW - cropX);
+  const cropH = clamp(guideRect.height / scale, 1, nativeH - cropY);
+
+  // Upscale the crop a bit — small/thin digits recognize far more reliably
+  // when Tesseract has more pixels to work with.
+  const UPSCALE = 2;
+  canvas.width = cropW * UPSCALE;
+  canvas.height = cropH * UPSCALE;
   const ctx = canvas.getContext("2d");
-  ctx.drawImage(video, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+  ctx.drawImage(video, cropX, cropY, cropW, cropH, 0, 0, canvas.width, canvas.height);
 
   toast("辨識中，請稍候…");
   try {
     const { data } = await Tesseract.recognize(canvas, "eng", {
       tessedit_char_whitelist: "0123456789-",
+      tessedit_pageseg_mode: "7", // single text line — matches the thin guide-frame strip
     });
     const raw = (data.text || "").trim();
-    const match = raw.match(/\d{3,7}(-\d{1,2})?/);
+    // LEGO set numbers are 4-5 digits (the age "8+", short model-variant
+    // numbers, and the piece count printed further down the box are 1-3
+    // digits, so preferring a 4-5 digit run first avoids picking those up).
+    const match =
+      raw.match(/\d{4,5}(-\d{1,2})?/) || raw.match(/\d{3,7}(-\d{1,2})?/);
     const guess = match ? match[0] : raw.replace(/\s+/g, "");
     goToReview(guess, "set");
   } catch (err) {
