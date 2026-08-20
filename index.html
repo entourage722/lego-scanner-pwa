@@ -61,6 +61,11 @@
           <span class="big-btn-label">掃描零件 / QR code</span>
           <span class="big-btn-sub">掃描包裝、零件或人偶包裝上的條碼</span>
         </button>
+        <button class="big-btn ai" data-goto="scan-minifig">
+          <span class="big-btn-icon">🤖</span>
+          <span class="big-btn-label">AI 辨識人偶</span>
+          <span class="big-btn-sub">拍下人偶本體（不用包裝），AI 幫你猜是誰</span>
+        </button>
       </div>
 
       <div class="manual-search card">
@@ -103,6 +108,23 @@
         <div id="qrReader"></div>
         <p class="camera-hint">將 QR code 或條碼對準畫面，會自動偵測</p>
       </div>
+    </section>
+
+    <!-- AI MINIFIG SCAN -->
+    <section id="view-scan-minifig" class="view">
+      <div class="camera-wrap">
+        <video id="minifigVideo" autoplay playsinline muted></video>
+        <p class="camera-hint">把人偶本體放在畫面正中央，光線充足、盡量清楚後拍照</p>
+      </div>
+      <div class="camera-controls">
+        <button id="minifigCaptureBtn" class="capture-btn" aria-label="拍照辨識"></button>
+      </div>
+      <canvas id="minifigCanvas" class="hidden"></canvas>
+    </section>
+
+    <!-- AI MINIFIG RESULT -->
+    <section id="view-minifig-ai" class="view">
+      <div id="minifigAiContent"></div>
     </section>
 
     <!-- REVIEW RECOGNIZED TEXT -->
