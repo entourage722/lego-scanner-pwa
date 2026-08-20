@@ -10,113 +10,158 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="積木掃描" />
 <link rel="manifest" href="manifest.json" />
+<link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3GwHAAADuklEQVR4nO3dS24USRRA0TDqOUPWAEOWwwJZDlOWA4MWEm1R+JsRz33PGVk2OJ9DcSszLai8e//h048FUe9ODwAnCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYC0f04P8JCPX789+Ge+f/mcmWOtObNMmeMl7ib+n+DHLOwtr7ngU+ZYa84sU+Z4LWMCeMnC3vKcBZ8yx1pzZpkyxxVG3ANcscDP+b5T5nju37ni+06Z4ypHzwA7F+FvrzhT5lhrzixT5rjasTPA7leAW8ebMsdDX7vCW1iTqx0J4NQPfP+4U+a49bkdJq/JDtsDOH3t9+v4U+a4//EJE9dkl633AKcXmLdh5z3BtjOAzc9j7dwrI34NCqdsCcCrP0+1a89cHoDNz3Pt2DsugUgTAGmXBuDyh5e6eg85A5AmANIuC8DlD6/lyr3kDECaAEgTAGkCIE0ApAmANAGQJgDSLgtgyhsf8fZduZecAUgTAGmXBuAyiJe6eg85A5AmANIuD8BlEM+1Y+9sOQOIgKfatWdcApG2LQBnAR7rf/neoGvNiWDSHJNmmWD3HNsvgU4v9K/jT5nj/scnTFyTXY7cA5xa6PvHnTLHrc/tMHlNdjh2E7z7B751vClzPPS1K7yFNbnaiMekXvm2F09Z3ClzrDVnlilzXGVEAGt5H6EiASwbn+hjUtey+flX7jGpa9n8/FfmMalr2fz82Yl9kXtOMLPt3h/+MRxpWwPw6s9jeE4wbCIA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgLStAXz/8nnn4Xijdu4TZwDStgfgLMDf7N4fR84AIuBPTuyLY5dAIuB3p/bD0XsAEbDW2X1w9/7Dpx/Hjv6bj1+/nR6BzSa8AI4JAE7wa1DSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEj7CSx178nBm1tLAAAAAElFTkSuQmCC" />
+<link rel="icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3GwHAAADuklEQVR4nO3dS24USRRA0TDqOUPWAEOWwwJZDlOWA4MWEm1R+JsRz33PGVk2OJ9DcSszLai8e//h048FUe9ODwAnCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYC0f04P8JCPX789+Ge+f/mcmWOtObNMmeMl7ib+n+DHLOwtr7ngU+ZYa84sU+Z4LWMCeMnC3vKcBZ8yx1pzZpkyxxVG3ANcscDP+b5T5nju37ni+06Z4ypHzwA7F+FvrzhT5lhrzixT5rjasTPA7leAW8ebMsdDX7vCW1iTqx0J4NQPfP+4U+a49bkdJq/JDtsDOH3t9+v4U+a4//EJE9dkl633AKcXmLdh5z3BtjOAzc9j7dwrI34NCqdsCcCrP0+1a89cHoDNz3Pt2DsugUgTAGmXBuDyh5e6eg85A5AmANIuC8DlD6/lyr3kDECaAEgTAGkCIE0ApAmANAGQJgDSLgtgyhsf8fZduZecAUgTAGmXBuAyiJe6eg85A5AmANIuD8BlEM+1Y+9sOQOIgKfatWdcApG2LQBnAR7rf/neoGvNiWDSHJNmmWD3HNsvgU4v9K/jT5nj/scnTFyTXY7cA5xa6PvHnTLHrc/tMHlNdjh2E7z7B751vClzPPS1K7yFNbnaiMekXvm2F09Z3ClzrDVnlilzXGVEAGt5H6EiASwbn+hjUtey+flX7jGpa9n8/FfmMalr2fz82Yl9kXtOMLPt3h/+MRxpWwPw6s9jeE4wbCIA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgDQBkCYA0gRAmgBIEwBpAiBNAKQJgLStAXz/8nnn4Xijdu4TZwDStgfgLMDf7N4fR84AIuBPTuyLY5dAIuB3p/bD0XsAEbDW2X1w9/7Dpx/Hjv6bj1+/nR6BzSa8AI4JAE7wa1DSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEgTAGkCIE0ApAmANAGQJgDSBECaAEj7CSx178nBm1tLAAAAAElFTkSuQmCC" />
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
 <div id="app">
 
-<header class="topbar">
-<button id="backBtn" class="icon-btn hidden" aria-label="返回">←</button>
-<h1 id="pageTitle">積木掃描小幫手</h1>
-<button id="settingsBtn" class="icon-btn" aria-label="設定">⚙️</button>
-</header>
+  <header class="topbar">
+    <button id="backBtn" class="icon-btn hidden" aria-label="返回">←</button>
+    <h1 id="pageTitle">積木掃描小幫手</h1>
+    <button id="settingsBtn" class="icon-btn" aria-label="設定">⚙️</button>
+  </header>
 
-<main id="views">
+  <main id="views">
 
-<section id="view-home" class="view active">
-<div class="hero-actions">
-<button class="big-btn primary" data-goto="scan-ocr">
-<span class="big-btn-icon">📦</span>
-<span class="big-btn-label">掃描組合盒</span>
-<span class="big-btn-sub">拍下盒上印的組合編號</span>
-</button>
-<button class="big-btn secondary" data-goto="scan-qr">
-<span class="big-btn-icon">🔲</span>
-<span class="big-btn-label">掃描零件 / QR code</span>
-<span class="big-btn-sub">掃描包裝、零件或人偶包裝上的條碼</span>
-</button>
-</div>
+    <!-- HOME -->
+    <section id="view-home" class="view active">
+      <div class="account-bar" id="accountBar">
+        <div id="accSignedOut">
+          <div id="googleSignInBtn"></div>
+        </div>
+        <div id="accSignedIn" class="hidden" style="display:flex;align-items:center;justify-content:space-between;width:100%;">
+          <div class="acc-user">
+            <img id="accAvatar" src="" alt="" />
+            <span class="acc-name" id="accName"></span>
+          </div>
+          <button id="accLogoutBtn" class="link-btn">登出</button>
+        </div>
+      </div>
 
-<div class="manual-search card">
-<div class="segmented" id="manualModeSeg">
-<button class="seg-btn active" data-mode="set">組合編號</button>
-<button class="seg-btn" data-mode="part">零件編號</button>
-<button class="seg-btn" data-mode="minifig">人偶</button>
-</div>
-<div class="search-row">
-<input id="manualInput" type="text" inputmode="text" placeholder="輸入編號或名稱，例如 75192、3001、fig-000001 或 Batman" />
-<button id="manualSearchBtn" class="pill-btn">查詢</button>
-</div>
-</div>
+      <div class="nav-card" id="goCollectionBtn">
+        <span class="nc-icon">⭐</span>
+        <div class="nc-text">
+          <div class="nc-title">我的收藏</div>
+          <div class="nc-sub">登入 Google 帳號，記錄你收藏的組合、零件與人偶</div>
+        </div>
+        <span class="nc-arrow">›</span>
+      </div>
 
-<div class="history-block">
-<div class="section-head">
-<h2>最近查詢</h2>
-<button id="clearHistoryBtn" class="link-btn">清除</button>
-</div>
-<div id="historyList" class="history-list"></div>
-</div>
-</section>
+      <div class="hero-actions">
+        <button class="big-btn primary" data-goto="scan-ocr">
+          <span class="big-btn-icon">📦</span>
+          <span class="big-btn-label">掃描組合盒</span>
+          <span class="big-btn-sub">拍下盒上印的組合編號</span>
+        </button>
+        <button class="big-btn secondary" data-goto="scan-qr">
+          <span class="big-btn-icon">🔲</span>
+          <span class="big-btn-label">掃描零件 / QR code</span>
+          <span class="big-btn-sub">掃描包裝、零件或人偶包裝上的條碼</span>
+        </button>
+      </div>
 
-<section id="view-scan-ocr" class="view">
-<div class="camera-wrap">
-<video id="ocrVideo" autoplay playsinline muted></video>
-<div class="frame-guide"></div>
-<p class="camera-hint">把組合盒上印的「組合編號」對準框內，盡量靠近、對焦清楚後拍照</p>
-</div>
-<div class="camera-controls">
-<button id="ocrCaptureBtn" class="capture-btn" aria-label="拍照辨識"></button>
-</div>
-<canvas id="ocrCanvas" class="hidden"></canvas>
-</section>
+      <div class="manual-search card">
+        <div class="segmented" id="manualModeSeg">
+          <button class="seg-btn active" data-mode="set">組合編號</button>
+          <button class="seg-btn" data-mode="part">零件編號</button>
+          <button class="seg-btn" data-mode="minifig">人偶</button>
+        </div>
+        <div class="search-row">
+          <input id="manualInput" type="text" inputmode="text" placeholder="輸入編號或名稱，例如 75192、3001、fig-000001 或 Batman" />
+          <button id="manualSearchBtn" class="pill-btn">查詢</button>
+        </div>
+      </div>
 
-<section id="view-scan-qr" class="view">
-<div class="camera-wrap">
-<div id="qrReader"></div>
-<p class="camera-hint">將 QR code 或條碼對準畫面，會自動偵測</p>
-</div>
-</section>
+      <div class="history-block">
+        <div class="section-head">
+          <h2>最近查詢</h2>
+          <button id="clearHistoryBtn" class="link-btn">清除</button>
+        </div>
+        <div id="historyList" class="history-list"></div>
+      </div>
+    </section>
 
-<section id="view-review" class="view">
-<div class="card">
-<p class="muted">辨識結果（可修改後再查詢）：</p>
-<div class="segmented" id="reviewModeSeg">
-<button class="seg-btn active" data-mode="set">組合編號</button>
-<button class="seg-btn" data-mode="part">零件編號</button>
-<button class="seg-btn" data-mode="minifig">人偶</button>
-</div>
-<input id="reviewInput" type="text" class="review-input" />
-<p class="muted" id="reviewHint" style="text-align:center;margin-top:-4px"></p>
-<button id="reviewSearchBtn" class="pill-btn full">查詢 Rebrickable</button>
-</div>
-</section>
+    <!-- OCR SCAN -->
+    <section id="view-scan-ocr" class="view">
+      <div class="camera-wrap">
+        <video id="ocrVideo" autoplay playsinline muted></video>
+        <div class="frame-guide"></div>
+        <p class="camera-hint">把組合盒上印的「組合編號」對準框內，盡量靠近、對焦清楚後拍照</p>
+      </div>
+      <div class="camera-controls">
+        <button id="ocrCaptureBtn" class="capture-btn" aria-label="拍照辨識"></button>
+      </div>
+      <canvas id="ocrCanvas" class="hidden"></canvas>
+    </section>
 
-<section id="view-result" class="view">
-<div id="resultContent"></div>
-</section>
+    <!-- QR / BARCODE SCAN -->
+    <section id="view-scan-qr" class="view">
+      <div class="camera-wrap">
+        <div id="qrReader"></div>
+        <p class="camera-hint">將 QR code 或條碼對準畫面，會自動偵測</p>
+      </div>
+    </section>
 
-<section id="view-settings" class="view">
-<div class="card">
-<h2>Rebrickable API Key</h2>
-<p class="muted">前往 rebrickable.com/api/v3/docs 登入後可免費申請。這把 Key 只會存在你手機瀏覽器裡，不會上傳到任何伺服器。</p>
-<input id="apiKeyInput" type="text" placeholder="貼上你的 API Key" autocomplete="off" autocapitalize="off" spellcheck="false" />
-<button id="saveApiKeyBtn" class="pill-btn full">儲存</button>
-<p id="apiKeyStatus" class="muted"></p>
-</div>
-<div class="card">
-<h2>關於</h2>
-<p class="muted">本 App 使用 Rebrickable 提供的公開資料庫與 API，僅供個人查詢樂高組合與零件資訊之用，與 LEGO® 官方及 Rebrickable 無關聯。</p>
-</div>
-</section>
+    <!-- REVIEW RECOGNIZED TEXT -->
+    <section id="view-review" class="view">
+      <div class="card">
+        <p class="muted">辨識結果（可修改後再查詢）：</p>
+        <div class="segmented" id="reviewModeSeg">
+          <button class="seg-btn active" data-mode="set">組合編號</button>
+          <button class="seg-btn" data-mode="part">零件編號</button>
+          <button class="seg-btn" data-mode="minifig">人偶</button>
+        </div>
+        <input id="reviewInput" type="text" class="review-input" />
+        <p class="muted" id="reviewHint" style="text-align:center;margin-top:-4px"></p>
+        <button id="reviewSearchBtn" class="pill-btn full">查詢 Rebrickable</button>
+      </div>
+    </section>
 
-</main>
+    <!-- RESULT -->
+    <section id="view-result" class="view">
+      <div id="resultContent"></div>
+    </section>
 
-<div id="toast" class="toast hidden"></div>
+    <!-- SETTINGS -->
+    <section id="view-settings" class="view">
+      <div class="card">
+        <h2>Rebrickable API Key</h2>
+        <p class="muted">前往 rebrickable.com/api/v3/docs 登入後可免費申請。這把 Key 只會存在你手機瀏覽器裡，不會上傳到任何伺服器。</p>
+        <input id="apiKeyInput" type="text" placeholder="貼上你的 API Key" autocomplete="off" autocapitalize="off" spellcheck="false" />
+        <button id="saveApiKeyBtn" class="pill-btn full">儲存</button>
+        <p id="apiKeyStatus" class="muted"></p>
+      </div>
+      <div class="card">
+        <h2>關於</h2>
+        <p class="muted">本 App 使用 Rebrickable 提供的公開資料庫與 API，僅供個人查詢樂高組合與零件資訊之用，與 LEGO® 官方及 Rebrickable 無關聯。</p>
+      </div>
+    </section>
+
+    <!-- MY COLLECTION -->
+    <section id="view-collection" class="view">
+      <div id="collectionSignedOutHint" class="state-msg hidden">
+        <div class="big">🔒</div>
+        <p>請先登入 Google 帳號才能查看收藏</p>
+        <div><button class="pill-btn retry-btn" id="goLoginFromCollectionBtn">前往首頁登入</button></div>
+      </div>
+      <div id="collectionContent">
+        <div class="collection-list" id="collectionList"></div>
+        <p class="empty-hint hidden" id="collectionEmptyHint">還沒有收藏任何東西，去掃描或查詢後按「⭐ 加入收藏」吧！</p>
+      </div>
+    </section>
+
+  </main>
+
+  <div id="toast" class="toast hidden"></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="app.js"></script>
 </body>
+</html>
 </html>
