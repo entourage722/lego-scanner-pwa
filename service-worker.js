@@ -1,54 +1,54 @@
-const CACHE_NAME = "lego-scanner-v3";
+const CACHE_NAME = "lego-scanner-v4";
 const APP_SHELL = [
-      "./",
-      "./index.html",
-      "./style.css",
-      "./app.js",
-      "./manifest.json",
-    ];
+  "./",
+  "./index.html",
+  "./style.css",
+  "./app.js",
+  "./manifest.json",
+];
 
 self.addEventListener("install", (event) => {
-      event.waitUntil(
-              caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)).then(() => self.skipWaiting())
-            );
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)).then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener("activate", (event) => {
-      event.waitUntil(
-              caches.keys().then((keys) =>
-                        Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
-                                     ).then(() => self.clients.claim())
-            );
+  event.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
+    ).then(() => self.clients.claim())
+  );
 });
 
 self.addEventListener("fetch", (event) => {
-      const url = new URL(event.request.url);
+  const url = new URL(event.request.url);
 
-                        // Never cache API calls (Rebrickable, our own /api/*) or third-party CDN/auth libs — always go to network.
-                        if (
-                                url.hostname.includes("rebrickable.com") ||
-                                url.hostname.includes("jsdelivr.net") ||
-                                url.hostname.includes("unpkg.com") ||
-                                url.hostname.includes("accounts.google.com") ||
-                                url.hostname.includes("gstatic.com") ||
-                                url.pathname.startsWith("/api/")
-                              ) {
-                                return; // let the browser handle it normally
-                        }
+  // Never cache API calls (Rebrickable, our own /api/*) or third-party CDN/auth libs — always go to network.
+  if (
+    url.hostname.includes("rebrickable.com") ||
+    url.hostname.includes("jsdelivr.net") ||
+    url.hostname.includes("unpkg.com") ||
+    url.hostname.includes("accounts.google.com") ||
+    url.hostname.includes("gstatic.com") ||
+    url.pathname.startsWith("/api/")
+  ) {
+    return; // let the browser handle it normally
+  }
 
-                        // App shell: cache-first, fall back to network, update cache in background.
-                        event.respondWith(
-                                caches.match(event.request).then((cached) => {
-                                          const fetchPromise = fetch(event.request)
-                                            .then((networkResp) => {
-                                                          if (event.request.method === "GET" && networkResp.ok) {
-                                                                          const clone = networkResp.clone();
-                                                                          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-                                                          }
-                                                          return networkResp;
-                                            })
-                                            .catch(() => cached);
-                                          return cached || fetchPromise;
-                                })
-                              );
+  // App shell: cache-first, fall back to network, update cache in background.
+  event.respondWith(
+    caches.match(event.request).then((cached) => {
+      const fetchPromise = fetch(event.request)
+        .then((networkResp) => {
+          if (event.request.method === "GET" && networkResp.ok) {
+            const clone = networkResp.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          }
+          return networkResp;
+        })
+        .catch(() => cached);
+      return cached || fetchPromise;
+    })
+  );
 });
