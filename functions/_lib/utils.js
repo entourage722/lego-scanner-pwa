@@ -39,3 +39,21 @@ export async function getSessionUser(request, env) {
     if (row.expires_at < now) return null;
     return { id: row.id, email: row.email, name: row.name, picture: row.picture };
 }
+
+// 把 collection_items 資料表的一列轉成回傳給前端用的物件
+export function mapCollectionRow(r) {
+    return {
+        id: r.id,
+        item_type: r.item_type,
+        item_ref: r.item_ref,
+        name: r.name,
+        image_url: r.image_url,
+        extra: r.extra_json ? JSON.parse(r.extra_json) : null,
+        quantity: r.quantity,
+        condition: r.condition,
+        value_amount: r.value_amount,
+        value_currency: r.value_currency,
+        value_updated_at: r.value_updated_at,
+        added_at: r.added_at,
+    };
+}
