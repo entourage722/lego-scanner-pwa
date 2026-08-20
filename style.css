@@ -175,3 +175,46 @@ main#views {
 }
 .toast.hidden { display: none; }
 .toast.error { border-color: var(--danger); color: var(--danger); }
+
+.hidden { display: none !important; }
+
+.account-bar {
+  display: flex; align-items: center; justify-content: center;
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 10px 14px; margin-bottom: 12px; min-height: 44px;
+}
+.account-bar .acc-user { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.account-bar .acc-user img { width: 32px; height: 32px; border-radius: 50%; background: var(--bg-elevated); object-fit: cover; }
+.account-bar .acc-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
+#googleSignInBtn { display: flex; justify-content: center; }
+
+.nav-card {
+  display: flex; align-items: center; gap: 12px; background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px 16px; margin-bottom: 20px; cursor: pointer;
+}
+.nav-card .nc-icon { font-size: 22px; }
+.nav-card .nc-text { flex: 1; }
+.nav-card .nc-title { font-size: 15px; font-weight: 700; }
+.nav-card .nc-sub { font-size: 12px; color: var(--text-muted); }
+.nav-card .nc-arrow { color: var(--text-muted); font-size: 20px; }
+
+.collection-list { display: flex; flex-direction: column; gap: 8px; }
+.collection-item {
+  display: flex; align-items: center; gap: 12px; background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 10px; cursor: pointer;
+}
+.collection-item img { width: 44px; height: 44px; object-fit: contain; background: #fff; border-radius: 8px; }
+.collection-item .ci-text { flex: 1; min-width: 0; }
+.collection-item .ci-title { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.collection-item .ci-sub { font-size: 12px; color: var(--text-muted); }
+.collection-item .ci-qty { font-size: 12px; color: var(--accent); font-weight: 700; }
+.collection-item .ci-remove {
+  background: none; border: none; color: var(--danger); font-size: 16px; cursor: pointer; padding: 6px;
+}
+
+.fav-btn {
+  width: 100%; margin-top: 10px; padding: 12px 18px; border-radius: 12px; font-weight: 700; font-size: 14px;
+  cursor: pointer; border: 1px solid var(--accent); background: transparent; color: var(--accent);
+}
+.fav-btn:active { background: var(--accent); color: #0f172a; }
+.fav-btn:active { background: var(--accent); color: #0f172a; }
