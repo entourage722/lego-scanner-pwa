@@ -1,8 +1,7 @@
 // ===== 積木掃描小幫手 =====
 // Rebrickable API 直接從瀏覽器呼叫；API Key 只存在 localStorage（僅限本機瀏覽器）
 
-const API_BASE = "https://rebrickable.com/api/v3";
-const LS_KEY_API = "rb_api_key";
+const API_BASE = "/api/rebrickable";
 const LS_KEY_HISTORY = "rb_history";
 const LS_KEY_SESSION = "rb_session_token";
 const LS_KEY_USER = "rb_user";
@@ -58,7 +57,6 @@ function goBack() {
 
 $("#backBtn").addEventListener("click", goBack);
 $("#settingsBtn").addEventListener("click", () => {
-  $("#apiKeyInput").value = localStorage.getItem(LS_KEY_API) || "";
   showView("settings");
 });
 
@@ -77,32 +75,6 @@ function toast(msg, type = "") {
   el.className = "toast" + (type ? " " + type : "");
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => el.classList.add("hidden"), 3200);
-}
-
-// ---------- Settings ----------
-$("#saveApiKeyBtn").addEventListener("click", () => {
-  const val = $("#apiKeyInput").value.trim();
-  if (!val) {
-    toast("請輸入 API Key", "error");
-    return;
-  }
-  localStorage.setItem(LS_KEY_API, val);
-  $("#apiKeyStatus").textContent = "已儲存 ✓";
-  toast("API Key 已儲存");
-});
-
-function getApiKey() {
-  return localStorage.getItem(LS_KEY_API) || "";
-}
-
-function requireApiKey() {
-  const key = getApiKey();
-  if (!key) {
-    toast("請先到設定頁輸入 Rebrickable API Key", "error");
-    showView("settings");
-    return null;
-  }
-  return key;
 }
 
 // ---------- 帳號 / Google 登入 ----------
@@ -472,11 +444,7 @@ function onQrDetected(text) {
 // Rebrickable API calls
 // ============================================================
 async function rbFetch(path) {
-  const key = requireApiKey();
-  if (!key) throw new Error("NO_KEY");
-  const res = await fetch(`${API_BASE}${path}`, {
-    headers: { Authorization: `key ${key}` },
-  });
+  const res = await fetch(`${API_BASE}${path}`);
   if (!res.ok) {
     const err = new Error("HTTP_" + res.status);
     err.status = res.status;
@@ -491,7 +459,6 @@ function normalizeSetNum(raw) {
 }
 
 async function runLookup(mode, rawQuery) {
-  if (!requireApiKey()) return;
   showResultLoading();
   showView("result");
   try {
@@ -503,7 +470,7 @@ async function runLookup(mode, rawQuery) {
       await lookupPart(rawQuery);
     }
   } catch (err) {
-    if (err.message !== "NO_KEY") showResultError(err);
+    showResultError(err);
   }
 }
 
@@ -622,7 +589,7 @@ function showResultNotFound(q) {
 function showResultError(err) {
   const msg =
     err.status === 401 || err.status === 403
-      ? "API Key 無效或未授權，請到設定頁確認"
+      ? "伺服器暫時無法查詢，請稍後再試"
       : "查詢失敗，請檢查網路連線後再試 (" + err.message + ")";
   $("#resultContent").innerHTML = `
     <div class="state-msg">
@@ -907,7 +874,6 @@ function escapeHtml(str) {
 // ---------- init ----------
 window.goBack = goBack; // used by inline onclick
 renderHistory();
-$("#apiKeyStatus").textContent = getApiKey() ? "已儲存 API Key ✓" : "";
 renderAccountUI();
 initGoogleSignInWhenReady();
 
