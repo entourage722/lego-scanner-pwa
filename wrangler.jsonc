@@ -1,0 +1,15 @@
+{
+  "name": "lego-scanner-pwa",
+  "compatibility_date": "2024-09-23",
+  "pages_build_output_dir": ".",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "lego-scanner-db",
+      "database_id": "fb95fcd5-632f-4e02-a12b-1f2e031c3c89"
+    }
+  ],
+  "vars": {
+    "GOOGLE_CLIENT_ID": "529227251585-n19luhp082iea90eau84uulsuh7kn3sb.apps.googleusercontent.com"
+  }
+}
