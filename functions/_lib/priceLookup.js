@@ -1,52 +1,115 @@
-// 共用工具：呼叫 BrickEconomy API 查詢組合／人偶目前的市場價值（全新／二手）
-// 需要在 Cloudflare 環境變數設定 BRICKECONOMY_API_KEY（共用金鑰，大家不用自己申請）。
-// BrickEconomy 免費額度每天只有 100 次查詢，所以只在「加入收藏」或使用者按「重新查詢價格」
-// 時才呼叫一次，不會在每次打開收藏清單時重複查詢。
+// 共用工具：呼叫 BrickLink 的 Price Guide API 查詢組合／零件目前的市場價值（全新／二手）
+// BrickLink API 完全免費，但需要在 Cloudflare 環境變數設定四個共用金鑰（在
+// https://www.bricklink.com/v2/api/register_consumer.page 免費申請）：
+//   BRICKLINK_CONSUMER_KEY, BRICKLINK_CONSUMER_SECRET, BRICKLINK_TOKEN_VALUE, BRICKLINK_TOKEN_SECRET
+// 注意：BrickLink 的人偶編號跟 Rebrickable 用的 fig-XXXXXX 編號對不起來，所以人偶暫不支援自動查價。
 
-const BE_BASE = "https://www.brickeconomy.com/api/v1";
+const BL_BASE = "https://api.bricklink.com/api/store/v1";
+
+// BrickLink 目錄用的類型代碼；minifig 不支援（見上方說明）
+const TYPE_MAP = { set: "SET", part: "PART" };
 
 export async function lookupValue(env, itemType, itemRef) {
-  const apiKey = (env.BRICKECONOMY_API_KEY || "").trim();
-  if (!apiKey) return { ok: false, reason: "NO_KEY" };
+  const blType = TYPE_MAP[itemType];
+  if (!blType) return { ok: false, reason: "UNSUPPORTED_TYPE" };
 
-  // BrickEconomy 主要收錄「組合」與「人偶」的價格，零件沒有對應的價格資料
-  if (itemType !== "set" && itemType !== "minifig") {
-    return { ok: false, reason: "UNSUPPORTED_TYPE" };
+  const creds = {
+    consumerKey: (env.BRICKLINK_CONSUMER_KEY || "").trim(),
+    consumerSecret: (env.BRICKLINK_CONSUMER_SECRET || "").trim(),
+    tokenValue: (env.BRICKLINK_TOKEN_VALUE || "").trim(),
+    tokenSecret: (env.BRICKLINK_TOKEN_SECRET || "").trim(),
+  };
+  if (!creds.consumerKey || !creds.consumerSecret || !creds.tokenValue || !creds.tokenSecret) {
+    return { ok: false, reason: "NO_KEY" };
   }
 
-  const path = itemType === "set" ? `/set/${encodeURIComponent(itemRef)}` : `/minifig/${encodeURIComponent(itemRef)}`;
+  const no = itemRef.trim();
 
-  let res;
   try {
-    res = await fetch(`${BE_BASE}${path}?currency=TWD`, {
-      headers: {
-        "x-apikey": apiKey,
-        "User-Agent": "lego-scanner-pwa (https://github.com/entourage722/lego-scanner-pwa)",
-      },
-    });
-  } catch {
-    return { ok: false, reason: "FETCH_FAILED" };
+    const [valueNew, valueUsed] = await Promise.all([
+      fetchPriceGuide(creds, blType, no, "N"),
+      fetchPriceGuide(creds, blType, no, "U"),
+    ]);
+    if (valueNew == null && valueUsed == null) return { ok: false, reason: "NO_VALUE" };
+    return { ok: true, valueNew, valueUsed, currency: "TWD" };
+  } catch (err) {
+    return { ok: false, reason: err.message === "RATE_LIMITED" ? "RATE_LIMITED" : "FETCH_FAILED" };
   }
+}
 
-  if (res.status === 429) return { ok: false, reason: "RATE_LIMITED" };
-  if (!res.ok) return { ok: false, reason: "HTTP_" + res.status };
-
-  let payload;
-  try {
-    payload = await res.json();
-  } catch {
-    return { ok: false, reason: "BAD_JSON" };
+// 先查最近 6 個月的實際成交價（sold），查不到再退而求其次查目前掛賣中的報價（stock）
+async function fetchPriceGuide(creds, type, no, newOrUsed) {
+  for (const guideType of ["sold", "stock"]) {
+    const url = `${BL_BASE}/items/${encodeURIComponent(type)}/${encodeURIComponent(no)}/price_guide?guide_type=${guideType}&new_or_used=${newOrUsed}&currency_code=TWD`;
+    let res;
+    try {
+      res = await signedFetch(creds, "GET", url);
+    } catch {
+      continue;
+    }
+    if (res.status === 429) throw new Error("RATE_LIMITED");
+    if (!res.ok) continue;
+    const payload = await res.json().catch(() => null);
+    const d = payload && payload.data;
+    const price = d && numOrNull(d.qty_avg_price ?? d.avg_price);
+    if (price != null) return price;
   }
-
-  const d = payload.data || payload;
-  const valueNew = numOrNull(d.current_value_new);
-  const valueUsed = numOrNull(d.current_value_used);
-  if (valueNew == null && valueUsed == null) return { ok: false, reason: "NO_VALUE" };
-
-  return { ok: true, valueNew, valueUsed, currency: "TWD" };
+  return null;
 }
 
 function numOrNull(v) {
   const n = Number(v);
   return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+// ---------- OAuth 1.0a 簽章（BrickLink API 要求，兩腳式：金鑰已經是核准過的 access token） ----------
+async function signedFetch(creds, method, url) {
+  const authHeader = await buildOAuthHeader(creds, method, url);
+  return fetch(url, { method, headers: { Authorization: authHeader } });
+}
+
+async function buildOAuthHeader(creds, method, url) {
+  const u = new URL(url);
+  const baseUrl = `${u.origin}${u.pathname}`;
+
+  const oauthParams = {
+    oauth_consumer_key: creds.consumerKey,
+    oauth_token: creds.tokenValue,
+    oauth_signature_method: "HMAC-SHA1",
+    oauth_timestamp: String(Math.floor(Date.now() / 1000)),
+    oauth_nonce: crypto.randomUUID().replace(/-/g, ""),
+    oauth_version: "1.0",
+  };
+
+  const allParams = { ...oauthParams };
+  u.searchParams.forEach((value, key) => {
+    allParams[key] = value;
+  });
+
+  const paramString = Object.keys(allParams)
+    .sort()
+    .map((k) => `${oauthEncode(k)}=${oauthEncode(allParams[k])}`)
+    .join("&");
+
+  const baseString = [method.toUpperCase(), oauthEncode(baseUrl), oauthEncode(paramString)].join("&");
+  const signingKey = `${oauthEncode(creds.consumerSecret)}&${oauthEncode(creds.tokenSecret)}`;
+  const signature = await hmacSha1Base64(signingKey, baseString);
+
+  const headerParams = { ...oauthParams, oauth_signature: signature };
+  const headerStr = Object.keys(headerParams)
+    .map((k) => `${oauthEncode(k)}="${oauthEncode(headerParams[k])}"`)
+    .join(", ");
+  return `OAuth ${headerStr}`;
+}
+
+// OAuth 規範要求的 percent-encoding 比 encodeURIComponent 多跳脫 ! * ' ( )
+function oauthEncode(str) {
+  return encodeURIComponent(str).replace(/[!*'()]/g, (c) => "%" + c.charCodeAt(0).toString(16).toUpperCase());
+}
+
+async function hmacSha1Base64(key, message) {
+  const enc = new TextEncoder();
+  const cryptoKey = await crypto.subtle.importKey("raw", enc.encode(key), { name: "HMAC", hash: "SHA-1" }, false, ["sign"]);
+  const sigBuf = await crypto.subtle.sign("HMAC", cryptoKey, enc.encode(message));
+  return btoa(String.fromCharCode(...new Uint8Array(sigBuf)));
 }
