@@ -45,7 +45,7 @@ export async function lookupValue(env, itemType, itemRef) {
 // 先查最近 6 個月的實際成交價（sold），查不到再退而求其次查目前掛賣中的報價（stock）
 async function fetchPriceGuide(creds, type, no, newOrUsed, debugLog) {
   for (const guideType of ["sold", "stock"]) {
-    const url = `${BL_BASE}/items/${encodeURIComponent(type)}/${encodeURIComponent(no)}/price_guide?guide_type=${guideType}&new_or_used=${newOrUsed}&currency_code=TWD`;
+    const url = `${BL_BASE}/items/${encodeURIComponent(type)}/${encodeURIComponent(no)}/price?guide_type=${guideType}&new_or_used=${newOrUsed}&currency_code=TWD`;
     let res;
     try {
       res = await signedFetch(creds, "GET", url);
