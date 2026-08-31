@@ -26,6 +26,16 @@ export async function lookupValue(env, itemType, itemRef) {
   const no = itemRef.trim();
   const debugLog = [];
 
+  // 暫時的控制測試：對「沒有 query string」的端點簽章，確認簽章演算法本身是否正確
+  try {
+    const controlUrl = `${BL_BASE}/items/${encodeURIComponent(blType)}/${encodeURIComponent(no)}`;
+    const controlRes = await signedFetch(creds, "GET", controlUrl);
+    const controlText = await controlRes.text();
+    debugLog.push(`CONTROL(no query) HTTP ${controlRes.status}: ${controlText.slice(0, 200)}`);
+  } catch (e) {
+    debugLog.push(`CONTROL(no query) threw: ${e.message}`);
+  }
+
   try {
     const [valueNew, valueUsed] = await Promise.all([
       fetchPriceGuide(creds, blType, no, "N", debugLog),
