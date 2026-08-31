@@ -59,11 +59,12 @@ async function fetchPriceGuide(creds, type, no, newOrUsed, debugLog) {
       debugLog.push(`${guideType}/${newOrUsed}: HTTP ${res.status} ${bodyText.slice(0, 200)}`);
       continue;
     }
-    const payload = await res.json().catch(() => null);
+    const rawText = await res.text();
+    const payload = (() => { try { return JSON.parse(rawText); } catch { return null; } })();
     const d = payload && payload.data;
     const price = d && numOrNull(d.qty_avg_price ?? d.avg_price);
     if (price != null) return price;
-    debugLog.push(`${guideType}/${newOrUsed}: HTTP 200 but no usable price (data=${JSON.stringify(d)})`);
+    debugLog.push(`${guideType}/${newOrUsed}: HTTP 200 but no usable price (raw=${rawText.slice(0, 300)})`);
   }
   return null;
 }
