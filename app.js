@@ -1,5 +1,5 @@
 // ===== 積木收藏本 =====
-// Rebrickable 查詢透過後端代理呼叫；BrickEconomy 用來查詢目前市場價值（全新／二手）
+// Rebrickable 查詢透過後端代理呼叫；BrickLink Price Guide 用來查詢目前市場價值（全新／二手）
 
 const API_BASE = "/api/rebrickable";
 const LS_KEY_SESSION = "rb_session_token";
