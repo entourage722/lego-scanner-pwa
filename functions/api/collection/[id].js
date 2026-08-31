@@ -36,7 +36,7 @@ export async function onRequestPatch({ request, env, params }) {
   if (body.refresh_price) {
     const priceResult = await lookupValue(env, row.item_type, row.item_ref);
     if (!priceResult.ok) {
-      return json({ error: "PRICE_LOOKUP_FAILED", reason: priceResult.reason }, 502);
+      return json({ error: "PRICE_LOOKUP_FAILED", reason: priceResult.reason, debug: priceResult.debug }, 502);
     }
     const valueAmount =
       row.condition === "used" ? priceResult.valueUsed ?? priceResult.valueNew : priceResult.valueNew ?? priceResult.valueUsed;
