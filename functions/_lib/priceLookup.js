@@ -24,35 +24,46 @@ export async function lookupValue(env, itemType, itemRef) {
   }
 
   const no = itemRef.trim();
+  const debugLog = [];
 
   try {
     const [valueNew, valueUsed] = await Promise.all([
-      fetchPriceGuide(creds, blType, no, "N"),
-      fetchPriceGuide(creds, blType, no, "U"),
+      fetchPriceGuide(creds, blType, no, "N", debugLog),
+      fetchPriceGuide(creds, blType, no, "U", debugLog),
     ]);
-    if (valueNew == null && valueUsed == null) return { ok: false, reason: "NO_VALUE" };
+    if (valueNew == null && valueUsed == null) return { ok: false, reason: "NO_VALUE", debug: debugLog };
     return { ok: true, valueNew, valueUsed, currency: "TWD" };
   } catch (err) {
-    return { ok: false, reason: err.message === "RATE_LIMITED" ? "RATE_LIMITED" : "FETCH_FAILED" };
+    return {
+      ok: false,
+      reason: err.message === "RATE_LIMITED" ? "RATE_LIMITED" : "FETCH_FAILED",
+      debug: [...debugLog, `error: ${err.message}`],
+    };
   }
 }
 
 // 先查最近 6 個月的實際成交價（sold），查不到再退而求其次查目前掛賣中的報價（stock）
-async function fetchPriceGuide(creds, type, no, newOrUsed) {
+async function fetchPriceGuide(creds, type, no, newOrUsed, debugLog) {
   for (const guideType of ["sold", "stock"]) {
     const url = `${BL_BASE}/items/${encodeURIComponent(type)}/${encodeURIComponent(no)}/price_guide?guide_type=${guideType}&new_or_used=${newOrUsed}&currency_code=TWD`;
     let res;
     try {
       res = await signedFetch(creds, "GET", url);
-    } catch {
+    } catch (e) {
+      debugLog.push(`${guideType}/${newOrUsed}: fetch threw ${e.message}`);
       continue;
     }
     if (res.status === 429) throw new Error("RATE_LIMITED");
-    if (!res.ok) continue;
+    if (!res.ok) {
+      const bodyText = await res.text().catch(() => "");
+      debugLog.push(`${guideType}/${newOrUsed}: HTTP ${res.status} ${bodyText.slice(0, 200)}`);
+      continue;
+    }
     const payload = await res.json().catch(() => null);
     const d = payload && payload.data;
     const price = d && numOrNull(d.qty_avg_price ?? d.avg_price);
     if (price != null) return price;
+    debugLog.push(`${guideType}/${newOrUsed}: HTTP 200 but no usable price (data=${JSON.stringify(d)})`);
   }
   return null;
 }
