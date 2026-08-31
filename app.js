@@ -377,8 +377,8 @@ $("#editQtyPlus").addEventListener("click", () => {
 function priceReasonMessage(reason) {
   const map = {
     NO_KEY: "尚未設定價格查詢金鑰",
-    UNSUPPORTED_TYPE: "零件沒有市場價格資料",
-    RATE_LIMITED: "今日查詢次數已用完，請明天再試",
+    UNSUPPORTED_TYPE: "人偶目前不支援自動查詢市場價格，可以手動輸入",
+    RATE_LIMITED: "查詢次數已用完，請稍後再試",
     NO_VALUE: "查無這個項目的價格資料",
   };
   return map[reason] || "價格查詢失敗，請稍後再試";
