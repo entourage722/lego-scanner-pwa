@@ -212,7 +212,7 @@ main#views {
 .edit-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 14px 0; }
 .edit-row label { font-size: 13px; color: var(--text-muted); font-weight: 600; }
 .edit-row #editConditionSeg { width: 160px; margin-bottom: 0; }
-.edit-row input[type="number"] {
+.edit-row input[type="number"], .edit-row input[type="text"] {
   width: 130px; background: var(--bg-elevated); border: 1px solid var(--border); color: var(--text);
   padding: 8px 10px; border-radius: 10px; font-size: 14px; text-align: right;
 }

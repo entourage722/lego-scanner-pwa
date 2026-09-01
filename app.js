@@ -246,7 +246,7 @@ function renderCollectionList(items) {
       <div class="ci-text">
         <div class="ci-title">${escapeHtml(it.name || it.item_ref)}</div>
         <div class="ci-sub">
-          ${COLLECTION_TYPE_LABEL[it.item_type] || it.item_type} ・ ${escapeHtml(it.item_ref)}
+          ${COLLECTION_TYPE_LABEL[it.item_type] || it.item_type} ・ ${escapeHtml(it.item_ref)}${it.bricklink_ref ? ` ・ BL: ${escapeHtml(it.bricklink_ref)}` : ""}
           <span class="ci-condition ${it.condition === "used" ? "used" : "new"}">${it.condition === "used" ? "二手" : "全新"}</span>
         </div>
         <div class="ci-value">${it.value_amount != null ? formatCurrency(it.value_amount) + " / 個" : "價值未知"}</div>
@@ -353,6 +353,8 @@ function openEditItem(item) {
   $$("#editConditionSeg .seg-btn").forEach((b) => b.classList.toggle("active", b.dataset.condition === editingCondition));
   $("#editQtyValue").textContent = editingQty;
   $("#editValueInput").value = item.value_amount != null ? item.value_amount : "";
+  $("#editBricklinkRow").classList.toggle("hidden", item.item_type !== "minifig");
+  $("#editBricklinkInput").value = item.bricklink_ref || "";
   $("#editItemModal").classList.remove("hidden");
 }
 function closeEditModal() {
@@ -421,6 +423,9 @@ $("#editSaveBtn").addEventListener("click", async () => {
   if (valRaw !== "") {
     const num = Number(valRaw);
     if (Number.isFinite(num) && num >= 0) body.value_amount = num;
+  }
+  if (editingItem.item_type === "minifig") {
+    body.bricklink_ref = $("#editBricklinkInput").value.trim();
   }
   try {
     const res = await apiFetch("/api/collection/" + encodeURIComponent(editingItem.id), {
