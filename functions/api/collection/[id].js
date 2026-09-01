@@ -50,6 +50,13 @@ export async function onRequestPatch({ request, env, params }) {
     await env.DB.prepare(`UPDATE collection_items SET quantity = ? WHERE id = ?`).bind(qty, id).run();
   }
 
+  if (body.bricklink_ref !== undefined) {
+    const ref = String(body.bricklink_ref || "").trim();
+    await env.DB.prepare(`UPDATE collection_items SET bricklink_ref = ? WHERE id = ?`)
+      .bind(ref || null, id)
+      .run();
+  }
+
   if (body.value_amount != null) {
     const val = Number(body.value_amount);
     if (Number.isFinite(val) && val >= 0) {
