@@ -6,7 +6,7 @@ export async function onRequestGet({ request, env }) {
   if (!user) return json({ error: "UNAUTHORIZED" }, 401);
 
   const { results } = await env.DB.prepare(
-    `SELECT id, item_type, item_ref, name, image_url, extra_json, quantity, condition, bricklink_ref, value_amount, value_currency, value_updated_at, added_at
+    `SELECT id, item_type, item_ref, name, image_url, extra_json, quantity, condition, value_amount, value_currency, value_updated_at, added_at
      FROM collection_items WHERE user_id = ? ORDER BY added_at DESC`
   )
     .bind(user.id)
@@ -57,7 +57,7 @@ export async function onRequestPost({ request, env }) {
     .run();
 
   const row = await env.DB.prepare(
-    `SELECT id, item_type, item_ref, name, image_url, extra_json, quantity, condition, bricklink_ref, value_amount, value_currency, value_updated_at, added_at
+    `SELECT id, item_type, item_ref, name, image_url, extra_json, quantity, condition, value_amount, value_currency, value_updated_at, added_at
      FROM collection_items WHERE user_id = ? AND item_type = ? AND item_ref = ? AND condition = ?`
   )
     .bind(user.id, itemType, itemRef, condition)
