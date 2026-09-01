@@ -70,7 +70,7 @@ async function getUserDetail(env, userId) {
   if (!user) return { error: "USER_NOT_FOUND" };
 
   const items = await env.DB.prepare(
-    `SELECT item_type, item_ref, name, image_url, quantity, condition, value_amount, value_currency, added_at
+    `SELECT item_type, item_ref, name, image_url, quantity, condition, bricklink_ref, value_amount, value_currency, added_at
      FROM collection_items WHERE user_id = ? ORDER BY added_at DESC`
   )
     .bind(userId)
