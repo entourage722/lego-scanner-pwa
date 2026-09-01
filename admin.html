@@ -372,7 +372,7 @@
           <img src="${it.image_url || ""}" alt="" onerror="this.style.visibility='hidden'" />
           <div class="di-text">
             <div class="di-title">${escapeHtml(it.name || it.item_ref)}</div>
-            <div class="di-sub">${TYPE_LABEL[it.item_type] || it.item_type} · #${escapeHtml(it.item_ref)}${it.bricklink_ref ? " · BL: " + escapeHtml(it.bricklink_ref) : ""} · x${it.quantity}${it.value_amount != null ? " · " + fmtMoney(it.value_amount) : ""}</div>
+            <div class="di-sub">${TYPE_LABEL[it.item_type] || it.item_type} · #${escapeHtml(it.item_ref)} · x${it.quantity}${it.value_amount != null ? " · " + fmtMoney(it.value_amount) : ""}</div>
           </div>
           <span class="di-badge ${it.condition}">${it.condition === "used" ? "二手" : "全新"}</span>
         </div>
