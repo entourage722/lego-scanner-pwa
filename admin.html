@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>後臺統計 - 積木收藏本</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --bg-elevated: #1e293b;
+    --card: #16213a;
+    --border: #2a3958;
+    --text: #e5edf9;
+    --text-muted: #93a3c0;
+    --accent: #38bdf8;
+    --accent-2: #818cf8;
+    --danger: #f87171;
+    --success: #4ade80;
+    --radius: 16px;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; min-height: 100%; background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Noto Sans TC", sans-serif;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 20px 16px 60px; }
+
+  /* ---------- 密碼登入畫面 ---------- */
+  #gate {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  .gate-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 28px 24px; width: 100%; max-width: 340px; text-align: center;
+  }
+  .gate-card h1 { font-size: 18px; margin: 0 0 4px; }
+  .gate-card p { color: var(--text-muted); font-size: 13px; margin: 0 0 18px; }
+  .gate-card input {
+    width: 100%; background: var(--bg-elevated); border: 1px solid var(--border); color: var(--text);
+    padding: 12px 14px; border-radius: 12px; font-size: 15px; margin-bottom: 12px;
+  }
+  .gate-card button {
+    width: 100%; background: var(--accent); color: #0f172a; border: none; border-radius: 12px;
+    padding: 12px 18px; font-weight: 700; font-size: 14px; cursor: pointer;
+  }
+  .gate-error { color: var(--danger); font-size: 13px; margin: -4px 0 12px; min-height: 16px; }
+
+  /* ---------- 主畫面 ---------- */
+  header.topbar {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; gap: 10px;
+  }
+  header.topbar h1 { font-size: 19px; margin: 0; }
+  header.topbar .actions { display: flex; gap: 8px; }
+  header.topbar button {
+    background: var(--bg-elevated); border: 1px solid var(--border); color: var(--text);
+    padding: 8px 14px; border-radius: 10px; font-size: 13px; cursor: pointer;
+  }
+
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 18px; }
+  .card h2 { font-size: 14px; margin: 0 0 12px; color: var(--text-muted); font-weight: 700; }
+
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 18px; }
+  .stat-tile {
+    background: linear-gradient(135deg, #0ea5e9, #6366f1); border-radius: var(--radius);
+    padding: 16px; color: white;
+  }
+  .stat-tile.alt { background: linear-gradient(135deg, #6366f1, #a855f7); }
+  .stat-tile .lbl { font-size: 12px; opacity: .9; font-weight: 600; }
+  .stat-tile .val { font-size: 24px; font-weight: 800; margin-top: 4px; }
+
+  .cond-row { display: flex; gap: 12px; }
+  .cond-box { flex: 1; background: var(--bg-elevated); border-radius: 12px; padding: 14px; }
+  .cond-box .cb-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .cond-box .cb-title { font-size: 13px; font-weight: 700; }
+  .cond-box .cb-title.new { color: var(--success); }
+  .cond-box .cb-title.used { color: var(--accent-2); }
+  .cond-box .cb-num { font-size: 12px; color: var(--text-muted); }
+  .cond-bar-track { height: 8px; border-radius: 999px; background: var(--card); overflow: hidden; }
+  .cond-bar-fill { height: 100%; border-radius: 999px; }
+  .cond-bar-fill.new { background: var(--success); }
+  .cond-bar-fill.used { background: var(--accent-2); }
+
+  .rank-list, .user-list { display: flex; flex-direction: column; gap: 8px; }
+  .rank-row, .user-row {
+    display: flex; align-items: center; gap: 12px; background: var(--bg-elevated); border-radius: 12px; padding: 10px;
+  }
+  .rank-idx { width: 22px; text-align: center; font-weight: 800; color: var(--text-muted); font-size: 13px; flex-shrink: 0; }
+  .rank-row img, .user-row .avatar {
+    width: 40px; height: 40px; object-fit: contain; background: #fff; border-radius: 8px; flex-shrink: 0;
+  }
+  .user-row .avatar { object-fit: cover; border-radius: 50%; }
+  .row-text { flex: 1; min-width: 0; }
+  .row-title { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .row-sub { font-size: 11px; color: var(--text-muted); }
+  .row-metric { text-align: right; flex-shrink: 0; }
+  .row-metric .m-num { font-size: 14px; font-weight: 700; color: var(--accent); }
+  .row-metric .m-lbl { font-size: 10px; color: var(--text-muted); }
+  .user-row { cursor: pointer; }
+  .user-row:active { border: 1px solid var(--accent); }
+
+  .empty-hint { color: var(--text-muted); font-size: 13px; text-align: center; padding: 20px 0; }
+  .loading-hint { color: var(--text-muted); font-size: 13px; text-align: center; padding: 40px 0; }
+
+  /* ---------- 使用者明細 modal ---------- */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 200;
+    display: flex; align-items: center; justify-content: center; padding: 16px;
+  }
+  .modal-overlay.hidden { display: none; }
+  .modal-sheet {
+    width: 100%; max-width: 480px; max-height: 82vh; overflow-y: auto;
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px;
+  }
+  .modal-sheet h3 { margin: 0 0 4px; font-size: 16px; }
+  .modal-sheet .muted { color: var(--text-muted); font-size: 12px; margin-bottom: 14px; }
+  .detail-item {
+    display: flex; align-items: center; gap: 10px; background: var(--bg-elevated); border-radius: 10px;
+    padding: 8px; margin-bottom: 6px;
+  }
+  .detail-item img { width: 36px; height: 36px; object-fit: contain; background: #fff; border-radius: 6px; }
+  .detail-item .di-text { flex: 1; min-width: 0; font-size: 12px; }
+  .detail-item .di-title { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .detail-item .di-sub { color: var(--text-muted); }
+  .di-badge { font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 999px; }
+  .di-badge.new { background: rgba(74,222,128,.18); color: var(--success); }
+  .di-badge.used { background: rgba(129,140,248,.2); color: var(--accent-2); }
+  .modal-close {
+    width: 100%; margin-top: 12px; background: var(--bg-elevated); border: 1px solid var(--border); color: var(--text);
+    padding: 10px; border-radius: 10px; font-size: 13px; cursor: pointer;
+  }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <div class="gate-card">
+    <h1>🔒 後臺統計</h1>
+    <p>請輸入管理密碼以查看全站收藏統計</p>
+    <input id="pwInput" type="password" placeholder="密碼" autocomplete="off" />
+    <div class="gate-error" id="pwError"></div>
+    <button id="pwSubmit">登入</button>
+  </div>
+</div>
+
+<div id="dashboard" class="wrap hidden">
+  <header class="topbar">
+    <h1>📊 後臺統計</h1>
+    <div class="actions">
+      <button id="refreshBtn">🔄 重新整理</button>
+      <button id="logoutBtn">登出</button>
+    </div>
+  </header>
+
+  <div id="loadingHint" class="loading-hint">載入中...</div>
+  <div id="dashContent" class="hidden">
+
+    <div class="stat-grid" id="statGrid"></div>
+
+    <div class="card">
+      <h2>新舊狀態分布</h2>
+      <div class="cond-row" id="condRow"></div>
+    </div>
+
+    <div class="card">
+      <h2>熱門排行（依總數量）</h2>
+      <div class="rank-list" id="rankList"></div>
+      <p class="empty-hint hidden" id="rankEmpty">目前還沒有任何收藏資料</p>
+    </div>
+
+    <div class="card">
+      <h2>使用者列表</h2>
+      <div class="user-list" id="userList"></div>
+      <p class="empty-hint hidden" id="userEmpty">目前還沒有任何使用者</p>
+    </div>
+
+  </div>
+</div>
+
+<div id="userModal" class="modal-overlay hidden">
+  <div class="modal-sheet">
+    <h3 id="modalUserName"></h3>
+    <p class="muted" id="modalUserSub"></p>
+    <div id="modalItems"></div>
+    <button class="modal-close" id="modalCloseBtn">關閉</button>
+  </div>
+</div>
+
+<script>
+(function () {
+  const STORAGE_KEY = "lego_admin_pw";
+  const gate = document.getElementById("gate");
+  const dashboard = document.getElementById("dashboard");
+  const pwInput = document.getElementById("pwInput");
+  const pwError = document.getElementById("pwError");
+  const pwSubmit = document.getElementById("pwSubmit");
+  const loadingHint = document.getElementById("loadingHint");
+  const dashContent = document.getElementById("dashContent");
+
+  const TYPE_LABEL = { set: "組合", part: "零件", minifig: "人偶" };
+  const fmtInt = (n) => Number(n || 0).toLocaleString("zh-Hant");
+  const fmtMoney = (n) => "NT$ " + Math.round(Number(n || 0)).toLocaleString("zh-Hant");
+
+  async function callApi(params) {
+    const pw = sessionStorage.getItem(STORAGE_KEY) || "";
+    const qs = params ? "?" + new URLSearchParams(params).toString() : "";
+    const res = await fetch("/api/admin/stats" + qs, { headers: { "x-admin-password": pw } });
+    if (res.status === 401) throw new Error("UNAUTHORIZED");
+    if (!res.ok) throw new Error("HTTP_" + res.status);
+    return res.json();
+  }
+
+  async function tryLogin(password) {
+    sessionStorage.setItem(STORAGE_KEY, password);
+    try {
+      const data = await callApi();
+      showDashboard(data);
+    } catch (e) {
+      sessionStorage.removeItem(STORAGE_KEY);
+      pwError.textContent = e.message === "UNAUTHORIZED" ? "密碼錯誤，請再試一次" : "連線失敗，請稍後再試";
+    }
+  }
+
+  pwSubmit.addEventListener("click", () => {
+    const pw = pwInput.value.trim();
+    if (!pw) return;
+    pwError.textContent = "";
+    tryLogin(pw);
+  });
+  pwInput.addEventListener("keydown", (e) => { if (e.key === "Enter") pwSubmit.click(); });
+
+  document.getElementById("logoutBtn").addEventListener("click", () => {
+    sessionStorage.removeItem(STORAGE_KEY);
+    dashboard.classList.add("hidden");
+    gate.classList.remove("hidden");
+    pwInput.value = "";
+    pwInput.focus();
+  });
+
+  document.getElementById("refreshBtn").addEventListener("click", async () => {
+    dashContent.classList.add("hidden");
+    loadingHint.classList.remove("hidden");
+    try {
+      const data = await callApi();
+      renderDashboard(data);
+    } catch (e) {
+      loadingHint.textContent = "載入失敗，請重新整理頁面再試一次";
+    }
+  });
+
+  function showDashboard(data) {
+    gate.classList.add("hidden");
+    dashboard.classList.remove("hidden");
+    renderDashboard(data);
+  }
+
+  function renderDashboard(data) {
+    loadingHint.classList.add("hidden");
+    dashContent.classList.remove("hidden");
+
+    const t = data.totals || {};
+    document.getElementById("statGrid").innerHTML = `
+      <div class="stat-tile"><div class="lbl">總使用者數</div><div class="val">${fmtInt(t.total_users)}</div></div>
+      <div class="stat-tile alt"><div class="lbl">有收藏的使用者</div><div class="val">${fmtInt(t.active_users)}</div></div>
+      <div class="stat-tile"><div class="lbl">收藏項目數</div><div class="val">${fmtInt(t.total_entries)}</div></div>
+      <div class="stat-tile alt"><div class="lbl">總收藏數量</div><div class="val">${fmtInt(t.total_quantity)}</div></div>
+      <div class="stat-tile"><div class="lbl">全站總價值</div><div class="val">${fmtMoney(t.total_value)}</div></div>
+    `;
+
+    renderCondition(data.condition || []);
+    renderRanking(data.ranking || []);
+    renderUsers(data.users || []);
+  }
+
+  function renderCondition(rows) {
+    const newRow = rows.find((r) => r.condition === "new") || { qty: 0, entries: 0 };
+    const usedRow = rows.find((r) => r.condition === "used") || { qty: 0, entries: 0 };
+    const total = (newRow.qty || 0) + (usedRow.qty || 0);
+    const pctNew = total > 0 ? Math.round(((newRow.qty || 0) / total) * 100) : 0;
+    const pctUsed = total > 0 ? 100 - pctNew : 0;
+
+    document.getElementById("condRow").innerHTML = `
+      <div class="cond-box">
+        <div class="cb-top"><span class="cb-title new">✨ 全新</span><span class="cb-num">${fmtInt(newRow.qty)} 件（${pctNew}%）</span></div>
+        <div class="cond-bar-track"><div class="cond-bar-fill new" style="width:${pctNew}%"></div></div>
+      </div>
+      <div class="cond-box">
+        <div class="cb-top"><span class="cb-title used">🔧 二手</span><span class="cb-num">${fmtInt(usedRow.qty)} 件（${pctUsed}%）</span></div>
+        <div class="cond-bar-track"><div class="cond-bar-fill used" style="width:${pctUsed}%"></div></div>
+      </div>
+    `;
+  }
+
+  function renderRanking(rows) {
+    const list = document.getElementById("rankList");
+    const empty = document.getElementById("rankEmpty");
+    if (!rows.length) {
+      list.innerHTML = "";
+      empty.classList.remove("hidden");
+      return;
+    }
+    empty.classList.add("hidden");
+    list.innerHTML = rows.map((r, i) => `
+      <div class="rank-row">
+        <div class="rank-idx">${i + 1}</div>
+        <img src="${r.image_url || ""}" alt="" onerror="this.style.visibility='hidden'" />
+        <div class="row-text">
+          <div class="row-title">${escapeHtml(r.name || r.item_ref)}</div>
+          <div class="row-sub">${TYPE_LABEL[r.item_type] || r.item_type} · #${escapeHtml(r.item_ref)} · ${r.owners} 人收藏</div>
+        </div>
+        <div class="row-metric">
+          <div class="m-num">${fmtInt(r.total_qty)}</div>
+          <div class="m-lbl">件</div>
+        </div>
+      </div>
+    `).join("");
+  }
+
+  function renderUsers(rows) {
+    const list = document.getElementById("userList");
+    const empty = document.getElementById("userEmpty");
+    if (!rows.length) {
+      list.innerHTML = "";
+      empty.classList.remove("hidden");
+      return;
+    }
+    empty.classList.add("hidden");
+    list.innerHTML = rows.map((u) => `
+      <div class="user-row" data-user-id="${u.id}">
+        <img class="avatar" src="${u.picture || ""}" alt="" onerror="this.style.visibility='hidden'" />
+        <div class="row-text">
+          <div class="row-title">${escapeHtml(u.name || u.email || "未命名使用者")}</div>
+          <div class="row-sub">${escapeHtml(u.email || "")} · ${u.entry_count} 筆收藏</div>
+        </div>
+        <div class="row-metric">
+          <div class="m-num">${fmtInt(u.total_qty)}</div>
+          <div class="m-lbl">${fmtMoney(u.total_value)}</div>
+        </div>
+      </div>
+    `).join("");
+
+    list.querySelectorAll(".user-row").forEach((el) => {
+      el.addEventListener("click", () => openUserDetail(el.getAttribute("data-user-id")));
+    });
+  }
+
+  async function openUserDetail(userId) {
+    const modal = document.getElementById("userModal");
+    const nameEl = document.getElementById("modalUserName");
+    const subEl = document.getElementById("modalUserSub");
+    const itemsEl = document.getElementById("modalItems");
+    nameEl.textContent = "載入中...";
+    subEl.textContent = "";
+    itemsEl.innerHTML = "";
+    modal.classList.remove("hidden");
+
+    try {
+      const data = await callApi({ user_id: userId });
+      if (data.error) {
+        nameEl.textContent = "找不到使用者";
+        return;
+      }
+      nameEl.textContent = data.user.name || data.user.email || "未命名使用者";
+      subEl.textContent = `${data.user.email || ""} · 共 ${data.items.length} 筆收藏`;
+      if (!data.items.length) {
+        itemsEl.innerHTML = `<p class="empty-hint">這位使用者還沒有收藏任何東西</p>`;
+        return;
+      }
+      itemsEl.innerHTML = data.items.map((it) => `
+        <div class="detail-item">
+          <img src="${it.image_url || ""}" alt="" onerror="this.style.visibility='hidden'" />
+          <div class="di-text">
+            <div class="di-title">${escapeHtml(it.name || it.item_ref)}</div>
+            <div class="di-sub">${TYPE_LABEL[it.item_type] || it.item_type} · #${escapeHtml(it.item_ref)} · x${it.quantity}${it.value_amount != null ? " · " + fmtMoney(it.value_amount) : ""}</div>
+          </div>
+          <span class="di-badge ${it.condition}">${it.condition === "used" ? "二手" : "全新"}</span>
+        </div>
+      `).join("");
+    } catch (e) {
+      nameEl.textContent = "載入失敗";
+    }
+  }
+
+  document.getElementById("modalCloseBtn").addEventListener("click", () => {
+    document.getElementById("userModal").classList.add("hidden");
+  });
+
+  function escapeHtml(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+    }[c]));
+  }
+
+  // 若之前已登入過（同分頁 session 內），自動載入
+  const savedPw = sessionStorage.getItem(STORAGE_KEY);
+  if (savedPw) {
+    callApi().then(showDashboard).catch(() => {
+      sessionStorage.removeItem(STORAGE_KEY);
+    });
+  }
+})();
+</script>
+
+</body>
+</html>
