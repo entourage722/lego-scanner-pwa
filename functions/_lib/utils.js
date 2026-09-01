@@ -51,6 +51,7 @@ export function mapCollectionRow(r) {
         extra: r.extra_json ? JSON.parse(r.extra_json) : null,
         quantity: r.quantity,
         condition: r.condition,
+        bricklink_ref: r.bricklink_ref || null,
         value_amount: r.value_amount,
         value_currency: r.value_currency,
         value_updated_at: r.value_updated_at,
